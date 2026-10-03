@@ -54,7 +54,7 @@ router.post('/instantiate', entitlementService.requireEntitlement('team_workforc
     const { template_key, name, mission } = req.body
 
     if (!template_key) {
-      return res.status(400).json({ error: 'template_key is required (marketing | technical | operations)' })
+      return res.status(400).json({ error: 'template_key is required (marketing | technical | operations | support)' })
     }
 
     const result = await teamOrchestratorService.instantiateTeamFromTemplate({

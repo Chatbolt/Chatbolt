@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Sparkles, ArrowRight, Loader2 } from 'lucide-react'
+import { Sparkles, ArrowRight } from 'lucide-react'
 
 interface SuggestionChip {
   label: string
@@ -66,11 +66,9 @@ const SuggestionChips = React.memo(({
 
   useEffect(() => {
     if (!taskName && !taskOutput) return
-    // Generate contextual suggestions
     const generated = generateLocalSuggestions(taskName, taskOutput)
     setChips(generated)
 
-    // Animate in after a short delay
     const timer = setTimeout(() => setVisible(true), 300)
     return () => clearTimeout(timer)
   }, [taskName, taskOutput])
@@ -88,26 +86,26 @@ const SuggestionChips = React.memo(({
 
   return (
     <div
-      className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${className}`}
+      className={`transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${className}`}
     >
       <div className="flex items-center gap-2 mt-3 flex-wrap">
-        <div className="flex items-center gap-1 text-xs text-zinc-500">
-          <Sparkles size={12} className="text-[#534AB7]" />
-          <span>What's next?</span>
+        <div className="flex items-center gap-1 text-xs font-semibold text-secondary">
+          <Sparkles size={13} className="text-sky-600" />
+          <span>Suggested follow-up:</span>
         </div>
         {chips.map((chip) => (
           <button
             key={chip.label}
             onClick={() => handleClick(chip)}
             disabled={clicked === chip.label}
-            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium
-              bg-zinc-900 border border-zinc-700 text-zinc-300
-              hover:border-[#534AB7]/50 hover:text-[#534AB7] hover:bg-[#534AB7]/5
-              active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50"
+            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+              bg-surface border border-border text-primary shadow-xs
+              hover:border-border-strong hover:bg-subtle
+              active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-50"
           >
             {chip.icon && <span>{chip.icon}</span>}
-            {chip.label}
-            <ArrowRight size={10} className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+            <span>{chip.label}</span>
+            <ArrowRight size={11} className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all text-secondary" />
           </button>
         ))}
       </div>

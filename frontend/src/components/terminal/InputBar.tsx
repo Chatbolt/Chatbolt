@@ -99,57 +99,46 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
         e.preventDefault()
         if (inputHistory.current.length === 0) return
 
-        let newIndex = historyIndex === -1 ? inputHistory.current.length - 1 : historyIndex - 1
-        if (newIndex < 0) newIndex = 0
-
-        setHistoryIndex(newIndex)
-        onChange(inputHistory.current[newIndex])
+        const nextIndex = historyIndex === -1 ? inputHistory.current.length - 1 : Math.max(0, historyIndex - 1)
+        setHistoryIndex(nextIndex)
+        onChange(inputHistory.current[nextIndex])
       }
     } else if (e.key === 'ArrowDown') {
-      if (value === '' || cursorAtStart) {
+      if (historyIndex !== -1) {
         e.preventDefault()
-        if (historyIndex === -1) return
-
-        let newIndex = historyIndex + 1
-        if (newIndex >= inputHistory.current.length) {
+        const nextIndex = historyIndex + 1
+        if (nextIndex >= inputHistory.current.length) {
           setHistoryIndex(-1)
           onChange('')
         } else {
-          setHistoryIndex(newIndex)
-          onChange(inputHistory.current[newIndex])
+          setHistoryIndex(nextIndex)
+          onChange(inputHistory.current[nextIndex])
         }
       }
-    } else if (e.key !== 'Process' && e.key !== 'Unidentified') {
-      // Reset history index on any typing
-      setHistoryIndex(-1)
     }
   }
 
   const handleSubmit = () => {
-    const trimmed = value.trim()
-    if (!trimmed || disabled) return
+    if ((!value.trim() && !fileContext) || disabled || uploading) return
 
-    let finalPrompt = trimmed
+    let finalPrompt = value.trim()
     if (fileContext) {
-      finalPrompt = `[File context: ${fileContext.filename}\n${fileContext.content}]\n\n${trimmed}`
-      setFileContext(null)
+      finalPrompt = `${finalPrompt}\n\n[Attached File: ${fileContext.filename}]\n${fileContext.content}`
     }
 
+    // Save to history (avoid consecutive duplicates, limit to 20)
     const history = inputHistory.current
-    if (history.length === 0 || history[history.length - 1] !== trimmed) {
-      history.push(trimmed)
-      if (history.length > 20) {
-        history.shift()
-      }
+    if (history.length === 0 || history[history.length - 1] !== value.trim()) {
+      inputHistory.current = [...history, value.trim()].slice(-20)
     }
+    setHistoryIndex(-1)
 
     onSend(finalPrompt)
-    onChange('')
-    setHistoryIndex(-1)
+    setFileContext(null)
+    setUploadError(null)
   }
 
   const handlePaperclipClick = () => {
-    if (disabled || uploading) return
     fileInputRef.current?.click()
   }
 
@@ -157,21 +146,23 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 10MB limit
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('File size exceeds 10MB limit')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setUploading(true)
     setUploadError(null)
-    setFileContext(null)
 
     try {
-      const token = localStorage.getItem('chatbolt_token')
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch(`${baseUrl}/multimodal/upload`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+      const res = await fetch(`${baseUrl}/files/upload`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token || ''}`
-        },
         body: formData
       })
 
@@ -206,12 +197,11 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
       />
 
       <div
-        className={`border transition-all duration-200 flex items-end gap-2 shadow-xl backdrop-blur-md bg-[var(--color-surface)]
+        className={`border transition-all duration-200 flex items-end gap-2 shadow-xs bg-surface rounded-xl px-2 py-1.5
           ${isFocused
-            ? 'border-[#534AB7] shadow-[0_0_0_2px_rgba(83,74,183,0.35)]'
-            : 'border-white/[0.06]'
+            ? 'border-border-strong ring-1 ring-border-strong'
+            : 'border-border'
           }`}
-        style={{ borderRadius: '14px' }}
       >
         
         {/* File Attachment Button */}
@@ -220,9 +210,9 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
           onClick={handlePaperclipClick}
           disabled={disabled || uploading}
           title={TERMINAL_STRINGS.attachButton}
-          className="p-2.5 hover:bg-white/5 border border-transparent hover:border-white/[0.04] rounded-xl text-zinc-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+          className="p-2 hover:bg-secondary rounded-lg text-secondary hover:text-primary transition-all cursor-pointer disabled:opacity-50"
         >
-          <Paperclip size={18} />
+          <Paperclip size={16} />
         </button>
 
         {/* Auto-growing Textarea Input */}
@@ -243,7 +233,7 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
           }}
           placeholder={placeholder || TERMINAL_STRINGS.inputPlaceholder}
           disabled={disabled || uploading}
-          className="flex-1 bg-transparent border-0 outline-none text-zinc-100 text-[13px] font-medium py-2 px-1 resize-none min-h-[36px] max-h-[120px] custom-scrollbar placeholder:text-zinc-500"
+          className="flex-1 bg-transparent border-0 outline-none text-primary text-xs font-sans py-2 px-1 resize-none min-h-[36px] max-h-[120px] custom-scrollbar placeholder:text-muted/60"
         />
 
         {/* Voice Input Button */}
@@ -251,9 +241,9 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
           type="button"
           title={TERMINAL_STRINGS.voiceButton}
           disabled={disabled || uploading}
-          className="p-2.5 hover:bg-white/5 border border-transparent hover:border-white/[0.04] rounded-xl text-zinc-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+          className="p-2 hover:bg-secondary rounded-lg text-secondary hover:text-primary transition-all cursor-pointer disabled:opacity-50"
         >
-          <Mic size={18} />
+          <Mic size={16} />
         </button>
 
         {/* Send Button */}
@@ -261,13 +251,13 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
           type="button"
           onClick={handleSubmit}
           disabled={disabled || uploading || !value.trim()}
-          className={`p-2.5 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+          className={`p-2 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-xs ${
             value.trim() && !disabled && !uploading
-              ? 'bg-[var(--color-accent)] text-white hover:scale-[1.02] shadow-[0_0_12px_rgba(83,74,183,0.4)]'
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              ? 'bg-action-primary text-action-primary-text hover:bg-action-primary-hover active:scale-[0.98]'
+              : 'bg-secondary text-muted cursor-not-allowed'
           }`}
         >
-          <ArrowUp size={16} />
+          <ArrowUp size={15} />
         </button>
         
       </div>
@@ -276,24 +266,24 @@ const InputBar = forwardRef<InputBarRef, InputBarProps>(({
       {(fileContext || uploading || uploadError) && (
         <div className="flex flex-col gap-1 px-1">
           {uploading && (
-            <div className="text-[10px] text-zinc-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-ping" />
+            <div className="text-[11px] text-secondary flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping" />
               Uploading and parsing file...
             </div>
           )}
           {fileContext && (
-            <div className="flex items-center gap-1.5 bg-[var(--color-accent)]/10 border border-[#534AB7]/20 rounded-lg px-2.5 py-1.5 max-w-xs text-white">
-              <span className="text-[11px] text-zinc-300 truncate max-w-[180px] font-medium">📎 {fileContext.filename}</span>
+            <div className="flex items-center gap-1.5 bg-secondary border border-border rounded-lg px-2.5 py-1.5 max-w-xs text-primary shadow-xs">
+              <span className="text-xs text-primary truncate max-w-[180px] font-medium">📎 {fileContext.filename}</span>
               <button 
                 onClick={() => setFileContext(null)} 
-                className="ml-auto text-zinc-500 hover:text-red-400 transition-colors cursor-pointer text-xs"
+                className="ml-auto text-muted hover:text-rose-700 transition-colors cursor-pointer text-xs"
               >
                 ✕
               </button>
             </div>
           )}
           {uploadError && (
-            <div className="text-[10px] text-red-400 font-medium">
+            <div className="text-[11px] text-rose-700 font-medium">
               ⚠️ {uploadError}
             </div>
           )}

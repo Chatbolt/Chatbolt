@@ -41,8 +41,8 @@ export default function TerminalPage() {
   const { success: toastSuccess, error: toastError } = useToast()
   const { toasts, addToast, dismissToast } = useTaskToast()
   
-  // Theme Toggle: obsidian default vs arctic light mode
-  const [theme, setTheme] = useState<'obsidian' | 'arctic'>('obsidian')
+  // Theme Toggle: arctic (Direction B light mode) default vs obsidian
+  const [theme, setTheme] = useState<'obsidian' | 'arctic'>('arctic')
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])

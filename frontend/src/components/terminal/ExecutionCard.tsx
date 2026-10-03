@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, Play, Check } from 'lucide-react'
 import { TERMINAL_STRINGS, sanitizeUserFacingText } from './strings'
 
 interface StepItem {
@@ -106,47 +106,39 @@ const ExecutionCard = React.memo(({
   // If completed, transition the entire card into a compact receipt card
   if (isCompleted) {
     return (
-      <div 
-        style={{
-          transition: 'all 200ms ease-out',
-          willChange: 'transform, opacity'
-        }}
-        className="bg-[#141418]/80 border border-[var(--color-success)]/30 rounded-2xl p-5 shadow-2xl shadow-[var(--color-success)]/5 space-y-3 animate-in fade-in zoom-in-95 duration-200"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="w-5 h-5 rounded-full bg-[var(--color-success)]/20 flex items-center justify-center text-[var(--color-success)]">
-            <CheckCircle size={12} />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-success)]">
+      <div className="bg-surface border border-emerald-200 rounded-xl p-4.5 shadow-xs space-y-3">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={15} className="text-emerald-600" />
+          <span className="text-xs font-semibold text-emerald-800">
             Task Resolved • {completedStepsCount} of {totalSteps} steps completed
           </span>
         </div>
         {taskReceipt ? (
-          <p className="text-xs text-zinc-200 leading-relaxed font-medium bg-zinc-950/40 p-3 rounded-xl border border-white/[0.03]">
+          <p className="text-xs text-primary leading-relaxed font-normal bg-secondary/50 p-3 rounded-lg border border-border">
             {taskReceipt}
           </p>
         ) : (
-          <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+          <p className="text-xs text-secondary leading-relaxed">
             Your task has been executed successfully.
           </p>
         )}
 
         {/* Save as Template Prompt */}
         {showTemplateChip && (
-          <div className="flex items-center justify-between p-3 bg-zinc-950/60 border border-white/[0.04] rounded-xl mt-3 animate-in fade-in slide-in-from-bottom-2">
-            <span className="text-[10px] font-bold text-zinc-400">Save this setup as a template?</span>
+          <div className="flex items-center justify-between p-3 bg-secondary/40 border border-border rounded-lg mt-2">
+            <span className="text-xs font-medium text-secondary">Save this setup as a template?</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleDismissTemplate}
-                className="px-2.5 py-1 text-zinc-500 hover:text-white bg-transparent border border-zinc-850 hover:bg-zinc-900 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-2.5 py-1 text-secondary hover:text-primary bg-surface border border-border rounded-md text-xs font-medium transition-all cursor-pointer"
               >
                 Dismiss
               </button>
               <button
                 type="button"
                 onClick={handleOpenSave}
-                className="px-2.5 py-1 text-black bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-2.5 py-1 text-action-primary-text bg-action-primary hover:bg-action-primary-hover rounded-md text-xs font-semibold transition-all cursor-pointer shadow-xs"
               >
                 Save
               </button>
@@ -156,61 +148,61 @@ const ExecutionCard = React.memo(({
 
         {/* Save Modal */}
         {showSaveModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
             <div className="absolute inset-0" onClick={() => setShowSaveModal(false)} />
-            <form onSubmit={handleSaveTemplate} className="bg-[var(--color-surface)] border border-white/[0.08] rounded-2xl max-w-md w-full p-6 relative z-10 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
-                <span className="text-xs font-black uppercase tracking-widest text-[var(--color-success)]">
+            <form onSubmit={handleSaveTemplate} className="bg-surface border border-border rounded-xl max-w-md w-full p-6 relative z-10 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <span className="text-xs font-semibold text-primary">
                   Save Personal Template
                 </span>
-                <button type="button" onClick={() => setShowSaveModal(false)} className="text-[9px] font-black uppercase tracking-wider text-zinc-500 hover:text-white transition-colors bg-transparent border-none outline-none cursor-pointer">
+                <button type="button" onClick={() => setShowSaveModal(false)} className="text-xs text-muted hover:text-primary transition-colors cursor-pointer">
                   Close
                 </button>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Template Name</label>
+                  <label className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Template Name</label>
                   <input 
                     type="text" 
                     value={templateName}
                     onChange={e => setTemplateName(e.target.value)}
                     placeholder="e.g. Daily Outbound Report"
-                    className="w-full bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[var(--color-accent)]/45 placeholder-zinc-705"
+                    className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs text-primary outline-none focus:border-border-strong placeholder:text-muted/60"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Original Prompt</label>
+                  <label className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Original Prompt</label>
                   <textarea 
                     value={templatePrompt}
                     onChange={e => setTemplatePrompt(e.target.value)}
-                    className="w-full h-20 bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[var(--color-accent)]/45 placeholder-zinc-705 resize-none custom-scrollbar font-medium"
+                    className="w-full h-20 bg-surface border border-border rounded-lg px-3 py-2 text-xs text-primary outline-none focus:border-border-strong placeholder:text-muted/60 resize-none font-medium"
                     required
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">Description (Optional)</label>
+                  <label className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">Description (Optional)</label>
                   <textarea 
                     value={templateDescription}
                     onChange={e => setTemplateDescription(e.target.value)}
                     placeholder="Brief description of the template purpose..."
-                    className="w-full h-16 bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[var(--color-accent)]/45 placeholder-zinc-705 resize-none custom-scrollbar"
+                    className="w-full h-16 bg-surface border border-border rounded-lg px-3 py-2 text-xs text-primary outline-none focus:border-border-strong placeholder:text-muted/60 resize-none"
                   />
                 </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowSaveModal(false)} className="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-400 hover:text-white">
+                <button type="button" onClick={() => setShowSaveModal(false)} className="px-3.5 py-1.5 bg-secondary border border-border rounded-lg text-xs font-medium text-primary hover:bg-subtle cursor-pointer">
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={savingTemplate}
-                  className="px-4 py-2.5 bg-[var(--color-accent)] text-black rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[var(--color-accent)]/90 transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 bg-action-primary text-action-primary-text rounded-lg text-xs font-semibold hover:bg-action-primary-hover transition-colors cursor-pointer shadow-xs"
                 >
                   {savingTemplate ? 'Saving...' : 'Save Template'}
                 </button>
@@ -223,34 +215,14 @@ const ExecutionCard = React.memo(({
   }
 
   return (
-    <div 
-      style={{
-        transition: 'all 200ms ease-out',
-        willChange: 'transform, opacity'
-      }}
-      className="bg-[var(--color-surface)]/60 border border-white/[0.06] rounded-2xl overflow-hidden shadow-xl backdrop-blur-md space-y-4 p-5 animate-in fade-in zoom-in-95 duration-300"
-    >
-      {/* CSS Keyframes for slideIn entry */}
-      <style>{`
-        @keyframes slideIn {
-          from {
-            transform: translateY(8px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
-      
+    <div className="bg-surface border border-border rounded-xl shadow-xs space-y-4 p-4.5">
       {/* Execution Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${
-            isFailed ? 'bg-red-500' : 'bg-amber-400 animate-ping'
+            isFailed ? 'bg-rose-600' : 'bg-sky-600 animate-pulse'
           }`} />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white">
+          <span className="text-xs font-semibold text-primary">
             {TERMINAL_STRINGS.processProgressTitle}
           </span>
         </div>
@@ -258,7 +230,7 @@ const ExecutionCard = React.memo(({
         {isExecuting && (
           <button
             onClick={onCancel}
-            className="p-1 hover:bg-white/5 border border-white/[0.06] rounded-md text-zinc-400 hover:text-red-400 transition-all cursor-pointer text-[9px] font-black uppercase tracking-widest px-2 py-1"
+            className="hover:bg-rose-50 border border-border rounded-md text-secondary hover:text-rose-700 transition-all cursor-pointer text-[11px] font-medium px-2 py-1"
           >
             {TERMINAL_STRINGS.cancelLabel}
           </button>
@@ -268,13 +240,13 @@ const ExecutionCard = React.memo(({
       {/* Progress Bar */}
       {progress !== undefined && (
         <div className="space-y-1.5">
-          <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-zinc-500">
+          <div className="flex justify-between items-center text-[11px] font-semibold text-secondary">
             <span>Overall Completion</span>
-            <span className="text-[var(--color-success)] font-mono">{progress}%</span>
+            <span className="text-sky-700 font-mono font-medium">{progress}%</span>
           </div>
-          <div className="w-full h-1 bg-zinc-950 border border-white/[0.04] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-secondary border border-border rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[var(--color-success)]/80 to-[var(--color-success)] rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-sky-600 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -289,38 +261,31 @@ const ExecutionCard = React.memo(({
             return (
               <div
                 key={s.position}
-                style={{
-                  transition: 'max-height 120ms ease-out, padding 120ms ease-out',
-                  maxHeight: isDone ? '28px' : '100px',
-                  overflow: 'hidden',
-                  willChange: 'max-height',
-                  animation: 'slideIn 150ms ease-out forwards',
-                }}
-                className={`rounded-xl border flex items-center gap-2.5 transition-all duration-300 ${
+                className={`rounded-lg border flex items-center gap-2.5 p-2.5 transition-all ${
                   s.status === 'running'
-                    ? 'bg-[var(--color-accent)]/5 border-[var(--color-success)]/30 shadow-[0_0_12px_rgba(0,229,153,0.05)] p-2.5'
+                    ? 'bg-sky-50 border-sky-200 shadow-xs'
                     : isDone
-                    ? 'bg-white/[0.02] border-[var(--color-success)]/15 px-2.5 py-1'
+                    ? 'bg-emerald-50/50 border-emerald-200'
                     : s.status === 'failed'
-                    ? 'bg-red-500/5 border-red-500/20 p-2.5'
-                    : 'bg-white/[0.01] border-white/[0.04] p-2.5'
+                    ? 'bg-rose-50 border-rose-200'
+                    : 'bg-subtle border-border'
                 }`}
               >
-                <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-semibold shrink-0 ${
                   isDone
-                    ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]'
+                    ? 'bg-emerald-100 text-emerald-800'
                     : s.status === 'running'
-                    ? 'bg-[var(--color-accent)] text-black animate-pulse'
+                    ? 'bg-sky-600 text-white animate-pulse'
                     : s.status === 'failed'
-                    ? 'bg-red-500/20 text-red-400'
-                    : 'bg-white/5 text-zinc-500'
+                    ? 'bg-rose-100 text-rose-800'
+                    : 'bg-secondary text-secondary'
                 }`}>
-                  {isDone ? <CheckCircle size={10} /> : s.status === 'failed' ? <XCircle size={10} /> : s.position}
+                  {isDone ? <Check size={11} /> : s.status === 'failed' ? <XCircle size={11} /> : s.position}
                 </div>
                 <div className="min-w-0 flex-1 flex flex-col justify-center">
-                  <p className="text-[10px] font-bold text-white truncate">{sanitizeUserFacingText(s.name)}</p>
+                  <p className="text-xs font-semibold text-primary truncate">{sanitizeUserFacingText(s.name)}</p>
                   {!isDone && (
-                    <p className="text-[8px] font-black uppercase tracking-wider text-zinc-500 truncate mt-0.5">
+                    <p className="text-[10px] text-secondary truncate">
                       Phase {s.position}
                     </p>
                   )}
@@ -334,16 +299,16 @@ const ExecutionCard = React.memo(({
       {/* Console Log Narration */}
       {logs.length > 0 && (
         <div className="space-y-1">
-          <div className="bg-black/40 border border-white/[0.03] rounded-xl p-3 h-24 overflow-y-auto font-mono text-[9px] text-[var(--color-success)]/80 space-y-0.5 custom-scrollbar">
+          <div className="bg-secondary border border-border rounded-lg p-3 h-28 overflow-y-auto font-mono text-[11px] text-primary space-y-1 custom-scrollbar">
             {logs.map((log, idx) => (
-              <div key={idx} className="leading-relaxed whitespace-pre-wrap opacity-95">
+              <div key={idx} className="leading-relaxed whitespace-pre-wrap">
                 {sanitizeUserFacingText(log)}
               </div>
             ))}
             {isExecuting && (
-              <div className="flex items-center gap-1 mt-1">
-                <Loader2 size={8} className="animate-spin text-[var(--color-success)]" />
-                <span className="text-zinc-500 animate-pulse text-[8px] uppercase tracking-widest font-black">Processing</span>
+              <div className="flex items-center gap-1.5 mt-1.5 text-sky-700">
+                <Loader2 size={10} className="animate-spin" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider">Processing</span>
               </div>
             )}
           </div>

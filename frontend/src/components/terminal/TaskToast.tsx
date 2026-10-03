@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { CheckCircle2, X, ExternalLink, Sparkles } from 'lucide-react'
+import { CheckCircle2, X, ExternalLink, Sparkles, AlertCircle } from 'lucide-react'
 
 export interface TaskToastData {
   id: string
@@ -15,6 +15,21 @@ interface TaskToastProps {
   tasks: TaskToastData[]
   onDismiss: (id: string) => void
   onViewTask?: (runId: string) => void
+}
+
+export function useTaskToast() {
+  const [toasts, setToasts] = useState<TaskToastData[]>([])
+
+  const addToast = useCallback((data: Omit<TaskToastData, 'id'>) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    setToasts(prev => [...prev, { ...data, id }])
+  }, [])
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }, [])
+
+  return { toasts, addToast, dismissToast }
 }
 
 function SingleToast({
@@ -35,9 +50,7 @@ function SingleToast({
   }, [task.id, onDismiss])
 
   useEffect(() => {
-    // Animate in
     const showTimer = setTimeout(() => setVisible(true), 50)
-    // Auto-dismiss after 8 seconds
     const dismissTimer = setTimeout(dismiss, 8000)
     return () => {
       clearTimeout(showTimer)
@@ -46,57 +59,52 @@ function SingleToast({
   }, [dismiss])
 
   const isError = task.type === 'error'
-  const accentColor = isError ? 'text-red-400' : 'text-[#534AB7]'
-  const borderColor = isError ? 'border-red-500/30' : 'border-[#534AB7]/30'
-  const bgGlow = isError ? 'shadow-red-500/10' : 'shadow-[#534AB7]/10'
 
   return (
     <div
       className={`
-        w-80 rounded-xl border ${borderColor} bg-zinc-950/95 backdrop-blur-sm p-4
-        shadow-2xl ${bgGlow}
-        transition-all duration-350 ease-out
+        w-80 rounded-xl border ${isError ? 'border-rose-200 bg-rose-50/95' : 'border-border bg-surface/95'} backdrop-blur-xs p-4
+        shadow-xl
+        transition-all duration-300 ease-out
         ${visible && !exiting ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'}
       `}
     >
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 ${accentColor}`}>
-          {isError
-            ? <X size={18} />
-            : <CheckCircle2 size={18} />
-          }
+        <div className={`mt-0.5 ${isError ? 'text-rose-600' : 'text-emerald-600'}`}>
+          {isError ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Sparkles size={10} className="text-[#534AB7]" />
-            <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={11} className={isError ? 'text-rose-600' : 'text-sky-600'} />
+            <p className="text-[10px] text-muted uppercase tracking-wider font-semibold">
               {isError ? 'Task Failed' : 'Task Complete'}
             </p>
           </div>
-          <p className="text-sm font-semibold text-white mt-0.5 truncate">{task.title}</p>
+          <p className="text-xs font-semibold text-primary mt-0.5 truncate">{task.title}</p>
           {task.description && (
-            <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{task.description}</p>
+            <p className="text-xs text-secondary mt-1 line-clamp-2">{task.description}</p>
           )}
           {task.runId && onViewTask && (
             <button
               onClick={() => onViewTask(task.runId!)}
-              className="mt-2 flex items-center gap-1 text-xs text-[#534AB7] hover:underline"
+              className="mt-2 flex items-center gap-1 text-xs font-semibold text-sky-700 hover:underline cursor-pointer"
             >
-              View results <ExternalLink size={10} />
+              <span>View results</span>
+              <ExternalLink size={11} />
             </button>
           )}
         </div>
         <button
           onClick={dismiss}
-          className="text-zinc-600 hover:text-zinc-300 transition-colors mt-0.5"
+          className="text-muted hover:text-primary transition-colors cursor-pointer"
         >
           <X size={14} />
         </button>
       </div>
       {/* Progress bar */}
-      <div className="mt-3 h-0.5 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="mt-3 h-1 bg-secondary rounded-full overflow-hidden">
         <div
-          className={`h-full ${isError ? 'bg-red-500' : 'bg-[#534AB7]'} rounded-full`}
+          className={`h-full ${isError ? 'bg-rose-600' : 'bg-emerald-600'} rounded-full`}
           style={{ animation: 'shrink 8s linear forwards' }}
         />
       </div>
@@ -125,20 +133,4 @@ export default function TaskToast({ tasks, onDismiss, onViewTask }: TaskToastPro
       ))}
     </div>
   )
-}
-
-// Hook for easy management
-export function useTaskToast() {
-  const [toasts, setToasts] = useState<TaskToastData[]>([])
-
-  const addToast = useCallback((toast: Omit<TaskToastData, 'id'>) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    setToasts(prev => [...prev, { ...toast, id }])
-  }, [])
-
-  const dismissToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id))
-  }, [])
-
-  return { toasts, addToast, dismissToast }
 }

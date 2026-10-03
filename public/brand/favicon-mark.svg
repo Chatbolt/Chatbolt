@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!--
+    Chatbolt Favicon / App Icon — 32×32
+    Optimized for small sizes. Pixel-aligned. Proportions adjusted for clarity at small scale.
+    
+    At 16px: renders as three distinct vertical bars with a bottom stroke.
+    At 32px: all proportions visible, mark reads clearly.
+    At 48px: use logo-mark-dark.svg directly.
+    
+    The viewBox is 32×32 to keep crisp pixel alignment at target sizes.
+    Bars are pixel-aligned: no sub-pixel rendering artifacts.
+  -->
+
+  <!-- Left pillar -->
+  <rect x="4" y="12" width="7" height="14" fill="#0F172A"/>
+
+  <!-- Center pillar (tallest — the orchestrator) -->
+  <rect x="13" y="7" width="7" height="19" fill="#0F172A"/>
+
+  <!-- Right pillar -->
+  <rect x="22" y="12" width="7" height="14" fill="#0F172A"/>
+
+  <!-- Baseline -->
+  <rect x="4" y="27" width="25" height="2" fill="#0F172A"/>
+</svg>

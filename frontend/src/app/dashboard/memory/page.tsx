@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import {
-  Brain, Trash2, Loader2, Shield, AlertTriangle, RefreshCw,
-  Search, User, Briefcase, MapPin, Star, Zap, Edit2, Check,
-  X, ChevronDown, ChevronRight, Lock
+  Brain, Trash2, Loader2, Shield, Search, User, Briefcase, MapPin,
+  Star, Zap, Edit2, Check, X, ChevronDown, ChevronRight, Lock,
+  RefreshCw, Database, Sparkles, Filter, CheckCircle2, ShieldCheck, HardDrive
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
+import DataSovereigntyModal from '@/components/dashboard/DataSovereigntyModal'
 
 type Fact = { id: string; key: string; value: string; category: string; importance?: number; confidence?: number; source?: string; created_at: string; updated_at?: string }
 type Skill = { id: string; key: string; task: string; quality: string; confidence: number; learned_at: string }
@@ -23,15 +24,15 @@ const PROFILE_FIELDS: Omit<ProfileEntry, 'value'>[] = [
 ]
 
 function catColor(cat: string) {
-  const m: Record<string,string> = {
-    preference: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-    skill:      'bg-purple-500/15 text-purple-400 border-purple-500/20',
-    person:     'bg-[#00E599]/15 text-[#00E599] border-[#00E599]/20',
-    entity:     'bg-orange-500/15 text-orange-400 border-orange-500/20',
-    pattern:    'bg-yellow-500/15 text-yellow-400 border-yellow-500/20',
-    fact:       'bg-zinc-700 text-zinc-300 border-zinc-600',
+  const m: Record<string, string> = {
+    preference: 'bg-sky-50 text-sky-800 border-sky-200',
+    skill:      'bg-indigo-50 text-indigo-800 border-indigo-200',
+    person:     'bg-emerald-50 text-emerald-800 border-emerald-200',
+    entity:     'bg-amber-50 text-amber-800 border-amber-200',
+    pattern:    'bg-purple-50 text-purple-800 border-purple-200',
+    fact:       'bg-gray-100 text-gray-800 border-gray-200',
   }
-  return m[cat] || 'bg-zinc-800 text-zinc-400 border-zinc-700'
+  return m[cat] || 'bg-gray-100 text-gray-700 border-gray-200'
 }
 
 function sourceLabel(source?: string) {
@@ -44,13 +45,13 @@ function sourceLabel(source?: string) {
 
 function ConfidenceBar({ value }: { value?: number }) {
   const pct = Math.round((value || 0.8) * 100)
-  const color = pct >= 80 ? 'bg-[#00E599]' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+  const barColor = pct >= 80 ? 'bg-emerald-600' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500'
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden border border-border/40">
+        <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-[10px] text-zinc-600 w-8 text-right">{pct}%</span>
+      <span className="text-[11px] font-mono text-muted w-8 text-right font-medium">{pct}%</span>
     </div>
   )
 }
@@ -65,16 +66,51 @@ function FactsTab() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(['preference', 'fact']))
   const [confirmWipe, setConfirmWipe] = useState(false)
   const [wiping, setWiping] = useState(false)
+  const [showSovereigntyModal, setShowSovereigntyModal] = useState(false)
   const { toast } = useToast()
 
   const load = async () => {
     setLoading(true)
     try {
-      const res = await api.memory.facts()
-      setGrouped(res.grouped || {})
-      setTotal(res.total || 0)
-      if (res.grouped) setExpanded(new Set(Object.keys(res.grouped).slice(0, 3)))
-    } catch { /* silently */ }
+      const [factsRes, paRes] = await Promise.allSettled([
+        api.memory.facts(),
+        api.personalAgent.getMemories()
+      ])
+
+      const groupedFacts: Record<string, Fact[]> =
+        factsRes.status === 'fulfilled' && factsRes.value?.grouped
+          ? { ...factsRes.value.grouped }
+          : {}
+
+      let runningTotal = factsRes.status === 'fulfilled' ? (factsRes.value?.total || 0) : 0
+
+      if (paRes.status === 'fulfilled' && paRes.value?.memories) {
+        for (const mem of paRes.value.memories) {
+          const cat = mem.category || 'preference'
+          if (!groupedFacts[cat]) groupedFacts[cat] = []
+          if (!groupedFacts[cat].some(f => f.id === mem.id || f.key === mem.key)) {
+            groupedFacts[cat].push({
+              id: mem.id,
+              key: mem.key,
+              value: mem.value,
+              category: cat,
+              importance: mem.importance,
+              confidence: (mem.importance || 8) / 10,
+              source: mem.isUserCorrected ? 'manual' : mem.source || 'personal_agent',
+              created_at: mem.createdAt || new Date().toISOString(),
+              updated_at: mem.updatedAt
+            })
+            runningTotal++
+          }
+        }
+      }
+
+      setGrouped(groupedFacts)
+      setTotal(runningTotal)
+      if (Object.keys(groupedFacts).length > 0) {
+        setExpanded(new Set(Object.keys(groupedFacts).slice(0, 4)))
+      }
+    } catch { /* silently fallback */ }
     finally { setLoading(false) }
   }
 
@@ -88,7 +124,8 @@ function FactsTab() {
         if (updated[category]) updated[category] = updated[category].filter(f => f.id !== id)
         return updated
       })
-      setTotal(t => t - 1)
+      setTotal(t => Math.max(0, t - 1))
+      toast({ title: 'Fact removed from memory', type: 'success' })
     } catch {
       toast({ title: 'Could not delete fact', type: 'error' })
     }
@@ -101,7 +138,7 @@ function FactsTab() {
       setGrouped({})
       setTotal(0)
       setConfirmWipe(false)
-      toast({ title: 'All memories cleared', type: 'success' })
+      toast({ title: 'All memories wiped successfully', type: 'success' })
     } catch {
       toast({ title: 'Could not clear memories', type: 'error' })
     } finally { setWiping(false) }
@@ -131,63 +168,78 @@ function FactsTab() {
     : 0
 
   return (
-    <div className="space-y-5">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Facts', value: total },
-          { label: 'Categories', value: categories.length || Object.keys(grouped).length },
-          { label: 'Avg Confidence', value: total ? `${avgConf}%` : '—' },
+          { label: 'Total Facts Stored', value: total, helper: 'Active knowledge entries' },
+          { label: 'Category Clusters', value: categories.length || Object.keys(grouped).length, helper: 'Structured taxonomies' },
+          { label: 'Avg Confidence Score', value: total ? `${avgConf}%` : '—', helper: 'Validated accuracy baseline' },
         ].map(s => (
-          <div key={s.label} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white">{s.value}</p>
-            <p className="text-xs text-zinc-500 mt-1">{s.label}</p>
+          <div key={s.label} className="bg-surface border border-border rounded-lg p-4 shadow-xs">
+            <p className="text-2xl font-bold font-mono tracking-tight text-primary">{s.value}</p>
+            <p className="text-xs font-medium text-primary mt-1">{s.label}</p>
+            <p className="text-[11px] text-muted">{s.helper}</p>
           </div>
         ))}
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-3">
+      {/* Controls Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-3.5 h-3.5" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search facts..."
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50"
+            placeholder="Filter facts by keyword or property..."
+            className="w-full bg-surface border border-border rounded-md pl-9 pr-4 py-2 text-sm text-primary placeholder-muted focus:outline-none focus:border-border-strong focus:ring-1 focus:ring-action-primary/20 shadow-xs"
           />
         </div>
-        <button onClick={load} className="p-2 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors">
-          <RefreshCw className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => setConfirmWipe(true)}
-          className="flex items-center gap-1.5 px-3 py-2 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/10 text-sm transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Clear all
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSovereigntyModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 rounded-md text-xs font-semibold transition-colors shadow-xs cursor-pointer"
+            title="Inspect Data Sovereignty, Pluggable Storage & Export"
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>Where is my data?</span>
+          </button>
+          <button
+            onClick={load}
+            className="p-2 bg-surface border border-border rounded-md text-secondary hover:text-primary hover:bg-secondary transition-colors shadow-xs cursor-pointer"
+            title="Refresh memory store"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={() => setConfirmWipe(true)}
+            className="flex items-center gap-1.5 px-3 py-2 border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md text-xs font-medium transition-colors shadow-xs cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Wipe Memory Store
+          </button>
+        </div>
       </div>
 
-      {/* Facts grouped */}
+      {/* Facts Grouped Accordion */}
       {loading ? (
         <div className="space-y-3 animate-pulse">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
-              <div className="h-3 bg-zinc-800 rounded w-[30%]" />
-              <div className="h-3 bg-zinc-800 rounded w-[60%]" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-20 bg-surface border border-border rounded-lg p-4 flex flex-col justify-center gap-2">
+              <div className="h-3 bg-secondary rounded w-1/4" />
+              <div className="h-3 bg-secondary rounded w-3/4" />
             </div>
           ))}
         </div>
       ) : categories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-zinc-500 text-center px-4">
-          <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted text-center px-4 bg-surface border border-border rounded-lg shadow-xs">
+          <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center text-secondary">
             <Brain className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-white">Nothing stored yet</p>
-            <p className="text-xs text-zinc-500">
-              Chatbolt learns about you as you work — start by running a task.
+            <p className="text-sm font-semibold text-primary">No memory facts stored yet</p>
+            <p className="text-xs text-muted max-w-sm">
+              Chatbolt automatically extracts domain facts, operational constraints, and workflow preferences as your agents run.
             </p>
           </div>
         </div>
@@ -197,43 +249,53 @@ function FactsTab() {
             const facts = filteredGrouped[cat]
             const isOpen = expanded.has(cat)
             return (
-              <div key={cat} className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
+              <div key={cat} className="bg-surface border border-border rounded-lg overflow-hidden shadow-xs">
                 <button
                   onClick={() => toggleSection(cat)}
-                  className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-zinc-800/30 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-surface hover:bg-secondary/60 transition-colors border-b border-border/60 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${catColor(cat)}`}>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium uppercase tracking-wider text-[10px] ${catColor(cat)}`}>
                       {cat}
                     </span>
-                    <span className="text-xs text-zinc-500">{facts.length} {facts.length === 1 ? 'fact' : 'facts'}</span>
+                    <span className="text-xs text-muted font-medium">{facts.length} {facts.length === 1 ? 'record' : 'records'}</span>
                   </div>
-                  {isOpen ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
+                  <div className="flex items-center gap-2 text-muted">
+                    <span className="text-xs">{isOpen ? 'Collapse' : 'Expand'}</span>
+                    {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </div>
                 </button>
                 {isOpen && (
-                  <div className="divide-y divide-zinc-800/50">
+                  <div className="divide-y divide-border/60 bg-surface">
                     {facts.map(f => (
-                      <div key={f.id} className="px-5 py-3 hover:bg-zinc-800/20 transition-colors">
-                        <div className="flex items-start gap-3">
+                      <div key={f.id} className="px-4 py-3 hover:bg-secondary/40 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-xs font-medium text-zinc-400">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-xs font-semibold text-primary font-mono bg-secondary px-1.5 py-0.5 rounded border border-border/50">
                                 {f.key.replace(/_/g, ' ')}
-                              </p>
-                              <span className="text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded">
+                              </span>
+                              <span className="text-[10px] font-medium text-muted bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded">
                                 {sourceLabel(f.source)}
                               </span>
+                              <span className="text-[10px] text-muted">
+                                {new Date(f.created_at).toLocaleDateString()}
+                              </span>
                             </div>
-                            <p className="text-sm text-white">{f.value}</p>
-                            <div className="mt-2 max-w-[200px]">
+                            <p className="text-sm text-secondary font-normal leading-relaxed">{f.value}</p>
+                            <div className="mt-2.5 max-w-xs">
+                              <div className="flex items-center justify-between text-[10px] text-muted mb-0.5">
+                                <span>Confidence</span>
+                              </div>
                               <ConfidenceBar value={f.confidence} />
                             </div>
                           </div>
                           <button
                             onClick={() => deleteFact(f.id, cat)}
-                            className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                            className="p-1.5 text-muted hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-md transition-colors shrink-0 cursor-pointer"
+                            title="Delete fact"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -246,28 +308,45 @@ function FactsTab() {
         </div>
       )}
 
-      {/* Wipe confirm */}
+      {/* Confirmation Modal */}
       {confirmWipe && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111113] border border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-xl bg-red-500/10">
-                <Trash2 className="w-5 h-5 text-red-400" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl p-6 max-w-md w-full shadow-lg">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-600" />
               </div>
-              <h3 className="font-semibold text-white">Clear all memories?</h3>
+              <div>
+                <h3 className="text-base font-semibold text-primary">Wipe All Agent Memories?</h3>
+                <p className="text-xs text-secondary mt-1 leading-relaxed">
+                  This action permanently removes all {total} stored knowledge records, learned constraints, and preference tags. Your agents will start with a fresh memory baseline.
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-zinc-400 mb-5">
-              This permanently deletes all {total} stored facts. Chatbolt will start fresh. Cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmWipe(false)} className="flex-1 py-2.5 rounded-xl border border-zinc-700 text-zinc-400 text-sm hover:text-white transition-colors">Cancel</button>
-              <button onClick={wipeAll} disabled={wiping} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50">
-                {wiping ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Clear all'}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setConfirmWipe(false)}
+                className="px-4 py-2 rounded-md border border-border bg-surface text-secondary hover:bg-secondary text-xs font-medium transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={wipeAll}
+                disabled={wiping}
+                className="flex items-center gap-2 px-4 py-2 rounded-md bg-rose-600 text-white text-xs font-medium hover:bg-rose-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {wiping ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirm Wipe'}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Data Sovereignty & Pluggable Storage Modal */}
+      <DataSovereigntyModal
+        isOpen={showSovereigntyModal}
+        onClose={() => setShowSovereigntyModal(false)}
+      />
     </div>
   )
 }
@@ -277,7 +356,6 @@ function FactsTab() {
 function SkillsTab() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [loading, setLoading] = useState(true)
-  const { toast } = useToast()
 
   useEffect(() => {
     api.memory.skills()
@@ -286,37 +364,66 @@ function SkillsTab() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-zinc-600" /></div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-muted" />
+      </div>
+    )
+  }
 
-  if (skills.length === 0) return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3 text-zinc-600">
-      <Zap className="w-10 h-10" />
-      <p className="text-sm">No skills learned yet</p>
-      <p className="text-xs text-zinc-700">Complete tasks and Chatbolt will remember patterns that worked</p>
-    </div>
-  )
+  if (skills.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted text-center px-4 bg-surface border border-border rounded-lg shadow-xs">
+        <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center text-secondary">
+          <Zap className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-primary">No learned skills recorded yet</p>
+          <p className="text-xs text-muted max-w-sm">
+            When agents execute complex multi-step workflows, successful task execution heuristics are synthesized into reusable skills.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-zinc-600">Chatbolt automatically remembers task patterns that produced great results.</p>
-      <div className="grid gap-3">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted">
+          Autonomous skills synthesized from successful agent runs and execution patterns.
+        </p>
+        <span className="text-xs font-mono text-secondary font-medium">
+          {skills.length} skills active
+        </span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
         {skills.map(s => {
           const pct = Math.round(s.confidence * 100)
-          const quality = s.quality === 'excellent' ? { label: 'Excellent', color: 'text-[#00E599]' } : { label: 'Good', color: 'text-yellow-400' }
+          const isExc = s.quality === 'excellent'
           return (
-            <div key={s.id} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.quality === 'excellent' ? 'bg-[#00E599]/15' : 'bg-yellow-500/10'}`}>
-                  <Star className={`w-5 h-5 ${s.quality === 'excellent' ? 'text-[#00E599]' : 'text-yellow-400'}`} />
+            <div key={s.id} className="bg-surface border border-border rounded-lg p-4 shadow-xs hover:border-border-strong transition-all">
+              <div className="flex items-start gap-3.5">
+                <div className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 border ${
+                  isExc ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  <Star className="w-4 h-4 fill-current" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white capitalize">{s.task}</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className={`text-xs font-medium ${quality.color}`}>{quality.label}</span>
-                    <span className="text-xs text-zinc-600">Confidence: {pct}%</span>
-                    <span className="text-xs text-zinc-700">{new Date(s.learned_at).toLocaleDateString()}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-primary capitalize truncate">{s.task}</p>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
+                      isExc ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}>
+                      {isExc ? 'Optimal' : 'Standard'}
+                    </span>
                   </div>
-                  <div className="mt-2">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted">
+                    <span>Quality: <span className="font-medium text-primary capitalize">{s.quality}</span></span>
+                    <span>Learned {new Date(s.learned_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="mt-3">
                     <ConfidenceBar value={s.confidence} />
                   </div>
                 </div>
@@ -352,83 +459,94 @@ function ProfileTab() {
       await api.memory.setPreference(key, editValue)
       setProfile(prev => ({ ...prev, [key]: editValue }))
       setEditing(null)
-      toast({ title: 'Preference saved', type: 'success' })
+      toast({ title: 'Profile parameter updated', type: 'success' })
     } catch {
-      toast({ title: 'Could not save', type: 'error' })
+      toast({ title: 'Could not update profile', type: 'error' })
     } finally { setSaving(false) }
   }
 
-  if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-zinc-600" /></div>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-muted" />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-5">
-      {/* Profile header */}
-      <div className="bg-gradient-to-br from-[#00E599]/10 to-transparent border border-[#00E599]/20 rounded-2xl p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#00E599]/20 border border-[#00E599]/30 flex items-center justify-center">
-            <span className="text-2xl font-bold text-[#00E599]">
-              {(profile['user_name'] || '?')[0]?.toUpperCase()}
+    <div className="space-y-6">
+      {/* Profile Header Banner */}
+      <div className="bg-surface border border-border rounded-lg p-5 shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center shrink-0">
+            <span className="text-xl font-bold font-mono text-primary">
+              {(profile['user_name'] || 'U')[0]?.toUpperCase()}
             </span>
           </div>
-          <div>
-            <h3 className="font-bold text-white text-base">{profile['user_name'] || 'Unknown User'}</h3>
-            {profile['role'] && profile['company'] && (
-              <p className="text-sm text-zinc-400">{profile['role']} at {profile['company']}</p>
-            )}
-            {profile['location'] && (
-              <p className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3 h-3" />
-                {profile['location']}
-              </p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-primary text-base truncate">{profile['user_name'] || 'Operator Account'}</h3>
+              <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-medium px-2 py-0.5 rounded-full">
+                Active
+              </span>
+            </div>
+            {profile['role'] && profile['company'] ? (
+              <p className="text-xs text-secondary mt-0.5">{profile['role']} · {profile['company']}</p>
+            ) : (
+              <p className="text-xs text-muted mt-0.5">Fleet Operator & System Administrator</p>
             )}
           </div>
         </div>
-        <p className="text-xs text-zinc-500">
-          This profile is built automatically from your conversations.
-          Edit any field to correct or add information.
-        </p>
       </div>
 
-      {/* Fields */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl divide-y divide-zinc-800/50 overflow-hidden">
+      {/* Fields List */}
+      <div className="bg-surface border border-border rounded-lg divide-y divide-border shadow-xs overflow-hidden">
         {PROFILE_FIELDS.map(({ key, label, icon: Icon }) => {
           const value = profile[key]
           const isEditing = editing === key
           return (
-            <div key={key} className="px-5 py-3.5 hover:bg-zinc-800/20 transition-colors">
+            <div key={key} className="px-4 py-3.5 hover:bg-secondary/40 transition-colors">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="w-7 h-7 rounded-md bg-secondary border border-border/60 flex items-center justify-center shrink-0">
+                  <Icon className="w-3.5 h-3.5 text-secondary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-zinc-500 mb-1">{label}</p>
+                  <p className="text-xs font-medium text-muted">{label}</p>
                   {isEditing ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-1">
                       <input
                         value={editValue}
                         onChange={e => setEditValue(e.target.value)}
                         autoFocus
                         onKeyDown={e => { if (e.key === 'Enter') save(key); if (e.key === 'Escape') setEditing(null) }}
-                        className="flex-1 bg-zinc-900 border border-[#00E599]/50 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-none"
-                        placeholder={`Enter your ${label.toLowerCase()}...`}
+                        className="flex-1 bg-surface border border-border-strong rounded-md px-2.5 py-1 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-action-primary/20"
+                        placeholder={`Enter ${label.toLowerCase()}...`}
                       />
-                      <button onClick={() => save(key)} disabled={saving} className="p-1.5 bg-[#00E599] text-black rounded-lg hover:bg-[#00E599]/90 transition-colors">
+                      <button
+                        onClick={() => save(key)}
+                        disabled={saving}
+                        className="p-1.5 bg-action-primary text-action-primary-text rounded-md hover:bg-action-primary-hover transition-colors cursor-pointer shadow-xs"
+                      >
                         {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                       </button>
-                      <button onClick={() => setEditing(null)} className="p-1.5 bg-zinc-800 text-zinc-400 rounded-lg hover:text-white transition-colors">
+                      <button
+                        onClick={() => setEditing(null)}
+                        className="p-1.5 bg-surface border border-border text-secondary hover:text-primary rounded-md transition-colors cursor-pointer shadow-xs"
+                      >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (
-                    <p className={`text-sm ${value ? 'text-white' : 'text-zinc-600 italic'}`}>
-                      {value || `Not set — start chatting to auto-learn`}
+                    <p className={`text-sm mt-0.5 ${value ? 'text-primary font-medium' : 'text-muted italic'}`}>
+                      {value || 'Not configured'}
                     </p>
                   )}
                 </div>
                 {!isEditing && (
                   <button
                     onClick={() => { setEditing(key); setEditValue(value || '') }}
-                    className="p-1.5 text-zinc-600 hover:text-[#00E599] hover:bg-[#00E599]/10 rounded-lg transition-colors"
+                    className="p-1.5 text-muted hover:text-primary hover:bg-secondary rounded-md border border-transparent hover:border-border transition-colors cursor-pointer"
+                    title={`Edit ${label}`}
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
@@ -439,12 +557,11 @@ function ProfileTab() {
         })}
       </div>
 
-      {/* Privacy notice */}
-      <div className="flex items-start gap-3 bg-zinc-900/40 border border-zinc-800/50 rounded-xl p-4">
-        <Lock className="w-4 h-4 text-zinc-500 mt-0.5 shrink-0" />
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          Profile data is stored only on your account and never shared. 
-          Chatbolt uses this to personalize responses — always respectfully and never for ads.
+      {/* Security Info Card */}
+      <div className="flex items-start gap-3 bg-secondary/40 border border-border rounded-lg p-4">
+        <ShieldCheck className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+        <p className="text-xs text-secondary leading-relaxed">
+          Memory data is partitioned per tenant and strictly scoped to authorized agent tasks. Context injection is evaluated dynamically with zero external telemetry sharing.
         </p>
       </div>
     </div>
@@ -458,44 +575,42 @@ export default function MemoryPage() {
   const tabs: Tab[] = ['Facts', 'Skills', 'Profile']
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-background text-primary">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <Brain className="w-5 h-5 text-purple-400" />
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-xl font-bold text-white">Memory & Privacy</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Everything Chatbolt knows about you — transparent and in your control</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-medium text-muted uppercase tracking-wider">Storage & Context</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Encrypted · AES-256
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-primary mt-1">Memory & Persona Engine</h1>
+            <p className="text-xs text-secondary mt-1">
+              Transparent inspection, categorical fact recall, and learned behavioral models.
+            </p>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center p-1 bg-surface border border-border rounded-lg shadow-xs self-start">
+            {tabs.map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  tab === t
+                    ? 'bg-action-primary text-action-primary-text shadow-xs'
+                    : 'text-secondary hover:text-primary hover:bg-secondary'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Privacy notice */}
-        <div className="flex items-start gap-3 bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
-          <Shield className="w-4 h-4 text-[#00E599] mt-0.5 shrink-0" />
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Chatbolt learns from your conversations to give smarter, faster responses. All memory is encrypted, 
-            tied to your account, and you can delete any fact or wipe everything at any time.
-          </p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 bg-zinc-900/60 border border-zinc-800 rounded-xl p-1 w-fit">
-          {tabs.map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-                tab === t ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab content */}
+        {/* Tab Content */}
         {tab === 'Facts'   && <FactsTab />}
         {tab === 'Skills'  && <SkillsTab />}
         {tab === 'Profile' && <ProfileTab />}

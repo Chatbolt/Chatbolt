@@ -1,9 +1,8 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
-  Key, Code, Zap, Plus, Trash2, Copy, Check, Eye, EyeOff,
-  Globe, Shield, ArrowRight, ExternalLink, Loader2,
-  Bot, Terminal, Webhook, RefreshCw, X
+  Key, Code, Zap, Plus, Trash2, Copy, Check,
+  Globe, Terminal, Webhook, RefreshCw, X, Loader2, Bot
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
@@ -21,18 +20,18 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
     })
   }
   return (
-    <div className="relative bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800">
-        <span className="text-xs text-zinc-500 font-mono">{language}</span>
+    <div className="relative bg-secondary/50 border border-border rounded-lg overflow-hidden shadow-xs">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-secondary/80">
+        <span className="text-[11px] text-muted font-mono font-medium">{language}</span>
         <button
           onClick={copy}
-          className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-[#00E599] transition-colors"
+          className="flex items-center gap-1 text-[11px] text-muted hover:text-primary transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-surface"
         >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-          {copied ? 'Copied!' : 'Copy'}
+          {copied ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3" />}
+          {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="p-4 text-xs text-zinc-300 font-mono overflow-x-auto whitespace-pre-wrap">{code}</pre>
+      <pre className="p-3.5 text-xs text-primary font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">{code}</pre>
     </div>
   )
 }
@@ -62,7 +61,7 @@ function ApiAccessTab({ agents }: { agents: Agent[] }) {
       setKeys(prev => [res.key || res, ...prev])
       setNewKeyName('')
       setNewKeyAgentId('')
-      toast({ title: 'API key created', type: 'success' })
+      toast({ title: 'API key provisioned', type: 'success' })
     } catch (err: any) {
       toast({ title: 'Failed to create key', message: err.message, type: 'error' })
     } finally {
@@ -71,38 +70,38 @@ function ApiAccessTab({ agents }: { agents: Agent[] }) {
   }
 
   const deleteKey = async (id: string) => {
-    if (!confirm('Delete this API key? Any apps using it will stop working.')) return
+    if (!confirm('Revoke this API key? External callers will receive HTTP 401.')) return
     try {
       await api.apiKeys.delete(id)
       setKeys(prev => prev.filter(k => k.id !== id))
-      toast({ title: 'Key deleted', type: 'success' })
+      toast({ title: 'Key revoked', type: 'success' })
     } catch (err: any) {
       toast({ title: 'Failed to delete key', message: err.message, type: 'error' })
     }
   }
 
-  const exampleCode = `# Submit a task
+  const exampleCode = `# Submit an autonomous task
 curl -X POST https://your-chatbolt-domain.com/api/v1/tasks \\
-  -H "X-API-Key: YOUR_KEY_HERE" \\
+  -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"prompt": "Summarize my inbox and draft replies"}'
+  -d '{"prompt": "Analyze customer support tickets and draft SLA summaries"}'
 
-# Check task status
+# Query task execution status
 curl https://your-chatbolt-domain.com/api/v1/tasks/TASK_ID \\
-  -H "X-API-Key: YOUR_KEY_HERE"`
+  -H "X-API-Key: YOUR_API_KEY"`
 
   return (
     <div className="space-y-6">
-      {/* New key revealed */}
+      {/* New key alert */}
       {showNewKey && (
-        <div className="bg-[#00E599]/10 border border-[#00E599]/30 rounded-xl p-4">
-          <div className="flex items-start justify-between gap-4">
+        <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4 shadow-xs">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <p className="text-sm font-semibold text-[#00E599] mb-1">🔑 Your new API key — copy it now</p>
-              <p className="text-xs text-zinc-500 mb-3">This key won&apos;t be shown again.</p>
-              <code className="text-sm text-white font-mono bg-zinc-900 px-3 py-2 rounded-lg block break-all">{showNewKey}</code>
+              <p className="text-xs font-semibold text-emerald-800 mb-0.5">New API Key Generated — Copy it now</p>
+              <p className="text-[11px] text-emerald-700 mb-2">This token cannot be displayed again after you navigate away.</p>
+              <code className="text-xs text-primary font-mono bg-surface border border-emerald-200 px-3 py-1.5 rounded block break-all">{showNewKey}</code>
             </div>
-            <button onClick={() => setShowNewKey(null)} className="text-zinc-500 hover:text-white transition-colors shrink-0">
+            <button onClick={() => setShowNewKey(null)} className="text-muted hover:text-primary transition-colors cursor-pointer p-1">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -110,69 +109,71 @@ curl https://your-chatbolt-domain.com/api/v1/tasks/TASK_ID \\
       )}
 
       {/* Create new key */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-          <Plus className="w-4 h-4 text-[#00E599]" />
-          Create API Key
+      <div className="bg-surface border border-border rounded-lg p-5 shadow-xs">
+        <h3 className="text-xs font-semibold text-primary flex items-center gap-2 mb-3">
+          <Plus className="w-3.5 h-3.5 text-secondary" />
+          Provision New Access Token
         </h3>
         <form onSubmit={createKey} className="flex flex-wrap gap-2">
           <input
             value={newKeyName}
             onChange={e => setNewKeyName(e.target.value)}
-            placeholder="Key name (e.g. Production App)"
-            className="flex-1 min-w-[200px] bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50"
+            placeholder="Token identifier (e.g. Production Webhook)"
+            className="flex-1 min-w-[200px] bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary placeholder-muted focus:outline-none focus:border-border-strong shadow-xs"
             required
           />
           <select
             value={newKeyAgentId}
             onChange={e => setNewKeyAgentId(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-[#00E599]/50"
+            className="bg-surface border border-border rounded-md px-2.5 py-1.5 text-xs text-primary focus:outline-none focus:border-border-strong shadow-xs cursor-pointer"
           >
-            <option value="">All agents</option>
+            <option value="">All agent workflows</option>
             {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <button
             type="submit"
             disabled={creating || !newKeyName.trim()}
-            className="px-4 py-2 bg-[#00E599] text-black text-sm font-semibold rounded-lg hover:bg-[#00E599]/90 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            className="px-3.5 py-1.5 bg-action-primary text-action-primary-text text-xs font-medium rounded-md hover:bg-action-primary-hover transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
-            Generate
+            {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Key className="w-3.5 h-3.5" />}
+            Generate Token
           </button>
         </form>
       </div>
 
       {/* Keys list */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Key className="w-4 h-4 text-zinc-400" />
-            Active Keys ({keys.length})
+      <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-surface">
+          <h3 className="text-xs font-semibold text-primary flex items-center gap-2">
+            <Key className="w-3.5 h-3.5 text-secondary" />
+            Active Platform Tokens ({keys.length})
           </h3>
         </div>
         {loading ? (
-          <div className="p-5 space-y-3">
-            {[...Array(2)].map((_, i) => <div key={i} className="h-14 bg-zinc-800 rounded-lg animate-pulse" />)}
+          <div className="p-4 space-y-2 animate-pulse">
+            {[...Array(2)].map((_, i) => <div key={i} className="h-10 bg-secondary rounded-md" />)}
           </div>
         ) : keys.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-zinc-600 gap-2">
-            <Key className="w-8 h-8" />
-            <p className="text-sm">No API keys yet</p>
+          <div className="flex flex-col items-center justify-center py-10 text-muted gap-1 text-xs">
+            <Key className="w-6 h-6 text-muted mb-1" />
+            <p className="font-semibold text-primary">No API keys created</p>
+            <p className="text-[11px] text-muted">Generate a key above to enable programmatic invocations.</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/50">
+          <div className="divide-y divide-border">
             {keys.map(k => (
-              <div key={k.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-800/20 transition-colors">
+              <div key={k.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary/30 transition-colors">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{k.name}</p>
-                  <p className="text-xs text-zinc-500 font-mono">{k.key_prefix}••••••••</p>
+                  <p className="text-xs font-semibold text-primary">{k.name}</p>
+                  <p className="text-[11px] text-muted font-mono">{k.key_prefix}••••••••</p>
                 </div>
-                <p className="text-xs text-zinc-600">
-                  {k.last_used_at ? `Last used ${new Date(k.last_used_at).toLocaleDateString()}` : 'Never used'}
+                <p className="text-[11px] text-muted font-mono">
+                  {k.last_used_at ? `Used ${new Date(k.last_used_at).toLocaleDateString()}` : 'Never invoked'}
                 </p>
                 <button
                   onClick={() => deleteKey(k.id)}
-                  className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="p-1 text-muted hover:text-rose-600 rounded hover:bg-rose-50 transition-colors cursor-pointer"
+                  title="Revoke token"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -182,11 +183,11 @@ curl https://your-chatbolt-domain.com/api/v1/tasks/TASK_ID \\
         )}
       </div>
 
-      {/* Code example */}
+      {/* Code Example */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-[#00E599]" />
-          How to use
+        <h3 className="text-xs font-semibold text-primary mb-2 flex items-center gap-1.5">
+          <Terminal className="w-3.5 h-3.5 text-secondary" />
+          HTTP Endpoint Invocation Reference
         </h3>
         <CodeBlock code={exampleCode} language="bash" />
       </div>
@@ -203,9 +204,9 @@ function EmbedWidgetTab({ agents }: { agents: Agent[] }) {
   const embedCode = `<script 
   src="https://your-chatbolt-domain.com/widget.js"
   data-agent="${selectedAgent || 'YOUR_AGENT_ID'}"
-  data-theme="dark"
+  data-theme="light"
   data-position="bottom-right"
-  data-welcome="Hi! How can I help you today?"
+  data-welcome="Hi! How can I assist you today?"
 ></script>`
 
   const copyEmbed = () => {
@@ -217,67 +218,63 @@ function EmbedWidgetTab({ agents }: { agents: Agent[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Agent selector */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-          <Bot className="w-4 h-4 text-[#00E599]" />
-          Select an Agent to Embed
+      {/* Agent Selector */}
+      <div className="bg-surface border border-border rounded-lg p-4 shadow-xs space-y-2">
+        <h3 className="text-xs font-semibold text-primary flex items-center gap-1.5">
+          <Bot className="w-3.5 h-3.5 text-secondary" />
+          Select Target Agent Persona
         </h3>
         <select
           value={selectedAgent}
           onChange={e => setSelectedAgent(e.target.value)}
-          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E599]/50"
+          className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:outline-none focus:border-border-strong shadow-xs cursor-pointer"
         >
-          <option value="">Choose an agent...</option>
+          <option value="">Select agent...</option>
           {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       </div>
 
-      {/* Preview */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-          <Globe className="w-4 h-4 text-zinc-400" />
-          Widget Preview
+      {/* Widget Preview */}
+      <div className="bg-surface border border-border rounded-lg p-4 shadow-xs">
+        <h3 className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-3">
+          <Globe className="w-3.5 h-3.5 text-secondary" />
+          Live Widget Layout Preview
         </h3>
-        <div className="relative h-56 bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden">
-          {/* Simulated page content */}
-          <div className="absolute inset-0 p-4 opacity-30">
-            <div className="h-3 bg-zinc-700 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-zinc-700 rounded w-1/2 mb-2" />
-            <div className="h-3 bg-zinc-700 rounded w-2/3" />
+        <div className="relative h-48 bg-secondary/30 rounded-lg border border-border overflow-hidden p-4">
+          <div className="space-y-2 opacity-40">
+            <div className="h-2.5 bg-gray-300 rounded w-1/2" />
+            <div className="h-2.5 bg-gray-300 rounded w-3/4" />
           </div>
-          {/* Chat widget bubble */}
-          <div className="absolute bottom-4 right-4 flex flex-col items-end gap-2">
-            <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-xs text-zinc-300 shadow-lg max-w-[180px]">
-              Hi! How can I help you today? 👋
+          {/* Chat Widget Simulated Bubble */}
+          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1.5">
+            <div className="bg-surface border border-border rounded-lg p-2 text-[11px] text-secondary shadow-xs max-w-[180px]">
+              Hi! How can I assist you today? 👋
             </div>
-            <div className="w-12 h-12 rounded-full bg-[#00E599] flex items-center justify-center shadow-lg cursor-pointer">
-              <Bot className="w-6 h-6 text-black" />
+            <div className="w-9 h-9 rounded-full bg-action-primary text-action-primary-text flex items-center justify-center shadow-xs">
+              <Bot className="w-4 h-4" />
             </div>
           </div>
         </div>
-        <p className="text-xs text-zinc-600 mt-2 text-center">Live preview — widget appears in the bottom-right corner</p>
       </div>
 
-      {/* Embed code */}
+      {/* Embed Code */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Code className="w-4 h-4 text-[#00E599]" />
-            Embed Code
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-semibold text-primary flex items-center gap-1.5">
+            <Code className="w-3.5 h-3.5 text-secondary" />
+            HTML Embed Snippet
           </h3>
           <button
             onClick={copyEmbed}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#00E599] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#00E599]/10"
+            className="flex items-center gap-1 text-xs text-secondary hover:text-primary transition-colors px-2 py-0.5 rounded border border-border bg-surface hover:bg-secondary cursor-pointer shadow-xs"
           >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? 'Copied!' : 'Copy Code'}
+            {copied ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3" />}
+            {copied ? 'Copied' : 'Copy Snippet'}
           </button>
         </div>
         <CodeBlock code={embedCode} language="html" />
-        <p className="text-xs text-zinc-600 mt-3">
-          Paste this snippet before the <code className="text-zinc-500">&lt;/body&gt;</code> tag on any page.
-          To customize colors or behavior, go to the agent settings.
+        <p className="text-[11px] text-muted mt-2">
+          Place this snippet immediately before the closing <code className="bg-secondary px-1 rounded">&lt;/body&gt;</code> tag of your web application.
         </p>
       </div>
     </div>
@@ -299,11 +296,10 @@ function ZapierTab() {
   const generateToken = async () => {
     setGenerating(true)
     try {
-      // Generate a random webhook token
       const token = Array.from(crypto.getRandomValues(new Uint8Array(20)))
         .map(b => b.toString(16).padStart(2, '0')).join('')
       setWebhookToken(token)
-      toast({ title: 'Webhook URL generated', type: 'success' })
+      toast({ title: 'Webhook endpoint generated', type: 'success' })
     } catch {
       toast({ title: 'Failed to generate token', type: 'error' })
     } finally {
@@ -319,82 +315,82 @@ function ZapierTab() {
   }
 
   const steps = [
-    { step: '1', title: 'Get your API key', desc: 'Copy your API key from the API Access tab above', icon: Key },
-    { step: '2', title: 'Open Zapier or Make.com', desc: 'Search for "Webhooks by Zapier" or "HTTP" in Make', icon: ExternalLink },
-    { step: '3', title: 'Paste your webhook URL', desc: 'Copy the webhook URL below and paste it as the trigger', icon: Webhook },
-    { step: '4', title: 'Set up your action', desc: 'Choose: Task Completed, New Memory Saved, or Agent Response', icon: Zap },
+    { step: '1', title: 'Retrieve API token', desc: 'Copy an access token from the API Access tab' },
+    { step: '2', title: 'Open Zapier or Make', desc: 'Create a Webhook trigger or HTTP action module' },
+    { step: '3', title: 'Bind webhook URL', desc: 'Paste the generated URL as the incoming endpoint' },
+    { step: '4', title: 'Configure action schema', desc: 'Map task inputs to workflow trigger properties' },
   ]
 
   return (
     <div className="space-y-6">
-      {/* Hero card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#00E599]/10 to-transparent border border-[#00E599]/20 rounded-2xl p-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E599]/5 rounded-full -mr-10 -mt-10" />
-        <Zap className="w-8 h-8 text-[#00E599] mb-3" />
-        <h3 className="text-base font-bold text-white mb-1">Connect to 5,000+ apps</h3>
-        <p className="text-sm text-zinc-400">
-          Use Zapier, Make.com, or any webhook-compatible tool to trigger Chatbolt tasks, 
-          receive task results, and automate cross-app workflows.
+      {/* Hero Card */}
+      <div className="bg-surface border border-border rounded-lg p-5 shadow-xs space-y-2">
+        <div className="flex items-center gap-2">
+          <Zap className="w-5 h-5 text-secondary" />
+          <h3 className="text-sm font-semibold text-primary">Connect to 5,000+ Third-Party Apps</h3>
+        </div>
+        <p className="text-xs text-secondary leading-relaxed">
+          Trigger autonomous agent tasks from HubSpot, Slack, Airtable, or custom webhooks and ingest outcomes directly back to your stack.
         </p>
       </div>
 
       {/* Steps */}
       <div className="grid md:grid-cols-2 gap-3">
-        {steps.map(({ step, title, desc, icon: Icon }) => (
-          <div key={step} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex gap-3">
-            <div className="w-7 h-7 rounded-lg bg-[#00E599]/15 text-[#00E599] flex items-center justify-center text-xs font-bold shrink-0">
+        {steps.map(({ step, title, desc }) => (
+          <div key={step} className="bg-surface border border-border rounded-lg p-3.5 flex gap-3 shadow-xs">
+            <div className="w-6 h-6 rounded bg-secondary border border-border text-primary flex items-center justify-center text-xs font-mono font-bold shrink-0">
               {step}
             </div>
             <div>
-              <p className="text-sm font-medium text-white mb-0.5">{title}</p>
-              <p className="text-xs text-zinc-500">{desc}</p>
+              <p className="text-xs font-semibold text-primary mb-0.5">{title}</p>
+              <p className="text-[11px] text-muted">{desc}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Webhook generator */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-          <Webhook className="w-4 h-4 text-[#00E599]" />
-          Your Webhook URL
+      {/* Webhook Generator */}
+      <div className="bg-surface border border-border rounded-lg p-5 shadow-xs space-y-3">
+        <h3 className="text-xs font-semibold text-primary flex items-center gap-1.5">
+          <Webhook className="w-3.5 h-3.5 text-secondary" />
+          Dedicated Webhook Ingestion Endpoint
         </h3>
         {webhookToken ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs text-zinc-300 font-mono bg-zinc-950 border border-zinc-700 px-3 py-2 rounded-lg break-all">
+              <code className="flex-1 text-xs text-primary font-mono bg-secondary/40 border border-border px-3 py-1.5 rounded-md break-all">
                 {webhookUrl}
               </code>
               <button
                 onClick={copyWebhook}
-                className="p-2 text-zinc-400 hover:text-[#00E599] hover:bg-[#00E599]/10 rounded-lg transition-colors"
+                className="p-1.5 text-secondary hover:text-primary rounded-md border border-border bg-surface hover:bg-secondary transition-colors cursor-pointer shadow-xs"
               >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
             <button
               onClick={generateToken}
-              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="flex items-center gap-1 text-[11px] text-muted hover:text-primary transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Generate new URL
+              <RefreshCw className="w-3 h-3" />
+              Generate new token
             </button>
           </div>
         ) : (
           <button
             onClick={generateToken}
             disabled={generating}
-            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover text-xs font-medium rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >
-            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Webhook className="w-4 h-4" />}
+            {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Webhook className="w-3.5 h-3.5" />}
             Generate Webhook URL
           </button>
         )}
       </div>
 
-      {/* API example for Zapier */}
+      {/* HTTP Payload Example */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-3">Example Zapier Action (HTTP POST)</h3>
+        <h3 className="text-xs font-semibold text-primary mb-2">Sample Webhook Payload Format</h3>
         <CodeBlock
           code={`URL: https://your-chatbolt-domain.com/api/v1/tasks
 Method: POST
@@ -404,7 +400,7 @@ Headers:
 
 Body:
 {
-  "prompt": "Summarize the lead data from {{zapier_field}}"
+  "prompt": "Process incoming form response from {{customer_email}}"
 }`}
           language="http"
         />
@@ -427,39 +423,41 @@ export default function DeployPage() {
   const tabIcons = { 'API Access': Key, 'Embed Widget': Globe, 'Zapier/Make': Zap }
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-background text-primary">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Globe className="w-5 h-5 text-[#00E599]" />
-            Deploy & Integrate
-          </h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
-            Connect Chatbolt to external apps, embed it on your site, or access via API
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+          <div>
+            <span className="text-xs font-mono font-medium text-muted uppercase tracking-wider">Integrations & Interfaces</span>
+            <h1 className="text-2xl font-bold tracking-tight text-primary mt-1">Deploy & Integrate</h1>
+            <p className="text-xs text-secondary mt-1">
+              Connect Chatbolt agents to third-party endpoints, embed chat widgets, or invoke via REST APIs.
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex items-center p-1 bg-surface border border-border rounded-lg shadow-xs self-start">
+            {tabs.map(t => {
+              const Icon = tabIcons[t]
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                    tab === t
+                      ? 'bg-action-primary text-action-primary-text shadow-xs'
+                      : 'text-secondary hover:text-primary hover:bg-secondary'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {t}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-zinc-900/60 border border-zinc-800 rounded-xl p-1 w-fit">
-          {tabs.map(t => {
-            const Icon = tabIcons[t]
-            return (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  tab === t ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {t}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Tab content */}
+        {/* Tab Content */}
         {tab === 'API Access' && <ApiAccessTab agents={agents} />}
         {tab === 'Embed Widget' && <EmbedWidgetTab agents={agents} />}
         {tab === 'Zapier/Make' && <ZapierTab />}

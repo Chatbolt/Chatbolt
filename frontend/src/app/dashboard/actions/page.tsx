@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
@@ -7,13 +8,15 @@ import {
   Activity, RefreshCw, Play, Cpu, CheckCircle, XCircle,
   MoreHorizontal, Edit3, Trash2, Clock, Terminal, ChevronDown
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
-  POST: 'text-[#00E599] bg-[#00E599]/10 border-[#00E599]/20',
-  PUT: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-  PATCH: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-  DELETE: 'text-red-400 bg-red-500/10 border-red-500/20',
+  GET: 'text-sky-800 bg-sky-50 border-sky-300',
+  POST: 'text-emerald-800 bg-emerald-50 border-emerald-300',
+  PUT: 'text-amber-800 bg-amber-50 border-amber-300',
+  PATCH: 'text-purple-800 bg-purple-50 border-purple-300',
+  DELETE: 'text-red-800 bg-red-50 border-red-300',
 }
 
 type Tool = {
@@ -99,6 +102,7 @@ export default function ActionsPage() {
       await api.customTools.update(editTool.id, { ...form, timeout_ms: Number(form.timeout_ms) })
       toastSuccess('Tool updated')
       setEditTool(null)
+      resetForm()
       loadTools()
     } catch (err: any) {
       toastError('Failed to update tool', err.message)
@@ -106,11 +110,10 @@ export default function ActionsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this tool?')) return
+    if (!confirm('Are you sure you want to delete this custom action?')) return
     try {
       await api.customTools.delete(id)
       toastSuccess('Tool deleted')
-      setActionMenuId(null)
       loadTools()
     } catch (err: any) {
       toastError('Failed to delete tool', err.message)
@@ -120,9 +123,10 @@ export default function ActionsPage() {
   const handleToggle = async (id: string) => {
     try {
       await api.customTools.toggle(id)
+      toastSuccess('Tool status updated')
       loadTools()
     } catch (err: any) {
-      toastError('Failed to toggle tool', err.message)
+      toastError('Failed to update tool status', err.message)
     }
   }
 
@@ -130,256 +134,214 @@ export default function ActionsPage() {
     if (!invokeToolId) return
     try {
       setInvoking(true)
-      setInvokeResult(null)
-      let payload: any = {}
-      try { payload = JSON.parse(invokePayload) } catch { payload = {} }
-      const result = await api.customTools.invoke(invokeToolId, payload)
-      setInvokeResult(result)
-      if (result.success) toastSuccess(`Tool executed in ${result.latency_ms}ms`)
-      else toastError('Tool execution failed', result.error || 'Unknown error')
-      loadTools()
+      let parsed = {}
+      try { parsed = JSON.parse(invokePayload) } catch { /* pass */ }
+      const res = await api.customTools.invoke(invokeToolId, parsed)
+      setInvokeResult(res)
     } catch (err: any) {
-      toastError('Failed to invoke tool', err.message)
+      toastError('Invoke failed', err.message)
     } finally {
       setInvoking(false)
     }
   }
 
-  const resetForm = () => setForm({
-    name: '', description: '', endpoint_url: '', method: 'POST',
-    auth_type: 'none', auth_value: '', auth_header: '', timeout_ms: 10000
-  })
+  const resetForm = () => {
+    setForm({
+      name: '', description: '', endpoint_url: '', method: 'POST',
+      auth_type: 'none', auth_value: '', auth_header: '', timeout_ms: 10000
+    })
+  }
 
   const openEdit = (t: Tool) => {
-    setForm({ name: t.name, description: t.description, endpoint_url: t.endpoint_url, method: t.method, auth_type: t.auth_type, auth_value: '', auth_header: t.auth_header || '', timeout_ms: 10000 })
     setEditTool(t)
+    setForm({
+      name: t.name, description: t.description || '', endpoint_url: t.endpoint_url,
+      method: t.method, auth_type: t.auth_type, auth_value: '', auth_header: t.auth_header || '',
+      timeout_ms: 10000
+    })
     setActionMenuId(null)
   }
 
   const statCards = [
-    { label: 'Total Tools', value: stats?.total || '0', icon: Zap, color: 'text-[#00E599]' },
-    { label: 'Active', value: stats?.active || '0', icon: Activity, color: 'text-blue-400' },
-    { label: 'Total Calls', value: stats?.total_calls || '0', icon: Cpu, color: 'text-purple-400' },
-    { label: 'Avg Latency', value: stats?.avg_latency ? `${Math.round(parseFloat(stats.avg_latency))}ms` : '—', icon: Clock, color: 'text-amber-400' },
+    { label: 'Total Actions', value: stats?.total || tools.length, icon: Cpu, color: 'text-sky-700' },
+    { label: 'Active Endpoints', value: stats?.active || tools.filter(t => t.is_active).length, icon: Activity, color: 'text-emerald-700' },
+    { label: 'Total Invocations', value: stats?.total_calls || '0', icon: Zap, color: 'text-amber-700' },
+    { label: 'Avg Latency', value: stats?.avg_latency ? `${stats.avg_latency}ms` : '—', icon: Clock, color: 'text-purple-700' },
   ]
 
-  const FormContent = ({ onSubmit, title }: { onSubmit: (e: React.FormEvent) => void; title: string }) => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl p-8 max-w-lg w-full shadow-2xl relative my-8">
-        <button onClick={() => { setShowAddModal(false); setEditTool(null) }} className="absolute top-6 right-6 text-zinc-500 hover:text-white">
-          <X size={20} />
-        </button>
-        <h2 className="text-lg font-bold text-white mb-6">{title}</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Tool Name *</label>
-            <input required className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Stripe Payment Check" />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Description</label>
-            <input className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="What does this tool do?" />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Endpoint URL *</label>
-              <input required type="url" className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.endpoint_url} onChange={e => setForm(f => ({ ...f, endpoint_url: e.target.value }))} placeholder="https://api.example.com/v1/..." />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Method</label>
-              <select className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.method} onChange={e => setForm(f => ({ ...f, method: e.target.value }))}>
-                {['GET','POST','PUT','PATCH','DELETE'].map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Auth Type</label>
-              <select className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.auth_type} onChange={e => setForm(f => ({ ...f, auth_type: e.target.value }))}>
-                {['none','bearer','api_key','basic'].map(a => <option key={a} value={a}>{a === 'api_key' ? 'API Key' : a.charAt(0).toUpperCase() + a.slice(1)}</option>)}
-              </select>
-            </div>
-            {form.auth_type === 'api_key' && (
-              <div>
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Header Name</label>
-                <input className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.auth_header} onChange={e => setForm(f => ({ ...f, auth_header: e.target.value }))} placeholder="X-API-Key" />
-              </div>
-            )}
-          </div>
-          {form.auth_type !== 'none' && (
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">
-                {form.auth_type === 'bearer' ? 'Bearer Token' : form.auth_type === 'basic' ? 'user:password' : 'API Key Value'}
-              </label>
-              <input type="password" className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.auth_value} onChange={e => setForm(f => ({ ...f, auth_value: e.target.value }))} placeholder="Stored securely..." />
-            </div>
-          )}
-          <div>
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Timeout (ms)</label>
-            <input type="number" min={100} max={60000} className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none" value={form.timeout_ms} onChange={e => setForm(f => ({ ...f, timeout_ms: parseInt(e.target.value) || 10000 }))} />
-          </div>
-          <button type="submit" className="w-full py-3 bg-[#00E599] text-black font-bold rounded-xl text-sm hover:bg-[#00E599]/90 transition-all">
-            {title.includes('Create') ? 'Create Tool' : 'Save Changes'}
+  const FormContent = ({ onSubmit, title }: { onSubmit: (e: React.FormEvent) => void, title: string }) => (
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-white border border-border rounded-[8px] p-6 max-w-lg w-full shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <h3 className="text-xs font-bold text-primary">{title}</h3>
+          <button onClick={() => { setShowAddModal(false); setEditTool(null) }} className="text-secondary hover:text-primary cursor-pointer">
+            <X size={15} />
           </button>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-3 text-xs">
+          <div>
+            <label className="text-xs font-semibold text-primary block mb-1">Action Name</label>
+            <input className="w-full bg-white border border-border rounded-[6px] px-3 py-2 text-xs text-primary focus:border-sky-600 outline-none" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Sync CRM Records" required />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-primary block mb-1">Description</label>
+            <textarea className="w-full bg-white border border-border rounded-[6px] px-3 py-2 text-xs text-primary focus:border-sky-600 outline-none resize-none h-16" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Webhook for real-time customer data syncing..." />
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className="text-xs font-semibold text-primary block mb-1">Method</label>
+              <select className="w-full bg-white border border-border rounded-[6px] px-2 py-2 text-xs text-primary outline-none focus:border-sky-600" value={form.method} onChange={e => setForm(f => ({ ...f, method: e.target.value }))}>
+                {['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="col-span-3">
+              <label className="text-xs font-semibold text-primary block mb-1">Endpoint URL</label>
+              <input className="w-full bg-white border border-border rounded-[6px] px-3 py-2 text-xs text-primary focus:border-sky-600 outline-none" value={form.endpoint_url} onChange={e => setForm(f => ({ ...f, endpoint_url: e.target.value }))} placeholder="https://api.example.com/v1/sync" required />
+            </div>
+          </div>
+          <div className="pt-2 flex justify-end gap-2 border-t border-border">
+            <Button variant="outline" size="sm" type="button" onClick={() => { setShowAddModal(false); setEditTool(null) }}>
+              Cancel
+            </Button>
+            <Button variant="primary" size="sm" type="submit">
+              {title.includes('Create') ? 'Create Action' : 'Save Changes'}
+            </Button>
+          </div>
         </form>
       </div>
     </div>
   )
 
   return (
-    <div className="flex flex-col h-full bg-[#050507] font-sans text-[#EDEDED] overflow-y-auto custom-scrollbar" onClick={() => setActionMenuId(null)}>
-      
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto font-sans" onClick={() => setActionMenuId(null)}>
       {/* Header */}
-      <div className="h-14 border-b border-white/[0.04] bg-[#070709]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-          <Cpu size={14} className="text-[#00E599]" /> Custom Tools & Actions
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-primary">Custom Actions & Webhooks</h1>
+          <p className="text-xs text-secondary mt-0.5">
+            Define programmatic REST tool endpoints for autonomous agent execution.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={loadTools} className="p-2 bg-white/[0.03] border border-white/[0.06] rounded-lg text-zinc-500 hover:text-white transition-all">
-            <RefreshCw size={14} />
-          </button>
-          <button onClick={() => { setShowAddModal(true); setEditTool(null); resetForm() }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#00E599] text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#00E599]/90 transition-all">
-            <Plus size={12} /> New Tool
-          </button>
+          <Button variant="outline" size="sm" onClick={loadTools}>
+            <RefreshCw size={13} className="mr-1.5" />
+            Refresh
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => { setShowAddModal(true); setEditTool(null); resetForm() }}>
+            <Plus size={13} className="mr-1.5" />
+            New Action
+          </Button>
         </div>
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
-        
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {statCards.map((s, i) => (
-            <div key={i} className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-5 hover:border-white/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <s.icon size={16} className={s.color} />
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{s.label}</span>
-              </div>
-              <div className="text-2xl font-bold text-white">{loading ? '...' : s.value}</div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {statCards.map((s, i) => (
+          <div key={i} className="bg-surface border border-border rounded-[6px] p-4 shadow-xs space-y-1">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary">
+              <s.icon size={14} className={s.color} />
+              <span>{s.label}</span>
             </div>
+            <div className="text-xl font-bold text-primary tabular-nums">{loading ? '—' : s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tools Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-40 bg-surface border border-border rounded-[6px] animate-pulse p-4" />
           ))}
         </div>
-
-        {/* Tools Grid */}
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-6 h-6 border-2 border-white/10 border-t-[#00E599] rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tools.map(t => (
-              <div key={t.id} className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-6 hover:border-white/10 transition-all group relative" onClick={e => e.stopPropagation()}>
-                
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center justify-center">
-                      <Globe size={18} className="text-[#00E599]" />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tools.map(t => (
+            <div key={t.id} className="bg-surface border border-border rounded-[6px] p-4 flex flex-col justify-between shadow-xs hover:border-slate-400 transition-all" onClick={e => e.stopPropagation()}>
+              <div>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-[5px] bg-surface-subtle border border-border flex items-center justify-center text-primary font-bold text-xs">
+                      <Globe size={16} />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-white">{t.name}</div>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black border ${METHOD_COLORS[t.method] || METHOD_COLORS.POST}`}>
+                      <h3 className="text-xs font-bold text-primary">{t.name}</h3>
+                      <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold border ${METHOD_COLORS[t.method] || METHOD_COLORS.POST}`}>
                         {t.method}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${t.is_active ? 'bg-[#00E599] animate-pulse' : 'bg-zinc-600'}`} />
-                    <div className="relative">
-                      <button onClick={() => setActionMenuId(actionMenuId === t.id ? null : t.id)}
-                        className="p-1.5 text-zinc-600 hover:text-white rounded-lg hover:bg-white/[0.04] transition-all">
-                        <MoreHorizontal size={14} />
-                      </button>
-                      {actionMenuId === t.id && (
-                        <div className="absolute right-0 top-8 z-10 bg-[#0D0D11] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden min-w-[160px]">
-                          <button onClick={() => openEdit(t)} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04]">
-                            <Edit3 size={12} /> Edit
-                          </button>
-                          <button onClick={() => { setInvokeToolId(t.id); setInvokeResult(null); setActionMenuId(null) }} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04]">
-                            <Play size={12} /> Test Invoke
-                          </button>
-                          <button onClick={() => handleToggle(t.id)} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04]">
-                            <Activity size={12} /> {t.is_active ? 'Disable' : 'Enable'}
-                          </button>
-                          <button onClick={() => handleDelete(t.id)} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-red-400 hover:bg-red-500/10">
-                            <Trash2 size={12} /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <StatusBadge status={t.is_active ? 'nominal' : 'idle'} label={t.is_active ? 'Active' : 'Paused'} size="sm" />
                 </div>
-
-                {/* Description */}
-                {t.description && <p className="text-xs text-zinc-500 mb-4 line-clamp-2">{t.description}</p>}
-                
-                {/* Endpoint */}
-                <div className="text-[10px] text-zinc-600 font-mono truncate mb-4 bg-white/[0.02] rounded-lg px-3 py-2 border border-white/[0.04]">
+                {t.description && <p className="text-[11px] text-secondary line-clamp-2 my-2">{t.description}</p>}
+                <div className="text-[10px] text-muted font-mono truncate bg-surface-subtle border border-border-subtle rounded px-2 py-1 my-2">
                   {t.endpoint_url}
                 </div>
-
-                {/* Stats */}
-                <div className="flex items-center justify-between text-[10px] text-zinc-500 border-t border-white/[0.04] pt-4">
-                  <span>{t.call_count || 0} calls</span>
-                  {t.avg_latency_ms && <span>{Math.round(t.avg_latency_ms)}ms avg</span>}
-                  <div className={`flex items-center gap-1 text-[9px] font-bold ${t.auth_type !== 'none' ? 'text-[#00E599]' : 'text-zinc-600'}`}>
-                    <Shield size={10} /> {t.auth_type !== 'none' ? 'Secured' : 'Public'}
-                  </div>
-                </div>
-
-                {/* Quick invoke button */}
-                <button onClick={() => { setInvokeToolId(t.id); setInvokeResult(null) }}
-                  className="mt-4 w-full py-2 bg-white/[0.03] border border-white/[0.06] rounded-xl text-[10px] font-bold text-zinc-400 hover:text-[#00E599] hover:border-[#00E599]/30 transition-all flex items-center justify-center gap-2">
-                  <Play size={12} /> Test Invoke
-                </button>
               </div>
-            ))}
 
-            {/* Add new tool card */}
-            <div onClick={() => { setShowAddModal(true); resetForm() }}
-              className="border-2 border-dashed border-white/[0.06] rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-4 hover:border-[#00E599]/30 transition-all cursor-pointer group min-h-[200px]">
-              <div className="w-12 h-12 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center justify-center text-zinc-600 group-hover:text-[#00E599] group-hover:border-[#00E599]/30 transition-all">
-                <Plus size={24} />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-zinc-400 group-hover:text-white transition-colors">Connect New Tool</div>
-                <div className="text-[10px] text-zinc-600 mt-1">REST API, webhook, or custom endpoint</div>
+              <div className="pt-2 border-t border-border-subtle flex items-center justify-between gap-2 mt-2">
+                <Button variant="outline" size="sm" className="h-7 text-[11px] flex-1" onClick={() => { setInvokeToolId(t.id); setInvokeResult(null) }}>
+                  <Play size={11} className="mr-1" /> Test Invoke
+                </Button>
+                <Button variant="secondary" size="sm" className="h-7 text-[11px]" onClick={() => openEdit(t)}>
+                  <Edit3 size={11} />
+                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-[11px] text-red-700 hover:text-red-900" onClick={() => handleDelete(t.id)}>
+                  <Trash2 size={11} />
+                </Button>
               </div>
             </div>
+          ))}
+
+          {/* Add tool dashed card */}
+          <div
+            onClick={() => { setShowAddModal(true); resetForm() }}
+            className="border-2 border-dashed border-border hover:border-slate-400 bg-surface/50 rounded-[6px] p-6 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer min-h-[160px]"
+          >
+            <div className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center text-secondary">
+              <Plus size={18} />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-primary block">Connect New Action</span>
+              <span className="text-[11px] text-muted">REST API, webhook, or microservice endpoint</span>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Invoke Modal */}
       {invokeToolId && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setInvokeToolId(null); setInvokeResult(null) }}>
-          <div className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl p-8 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4" onClick={() => { setInvokeToolId(null); setInvokeResult(null) }}>
+          <div className="bg-white border border-border rounded-[8px] p-6 max-w-lg w-full shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <Terminal size={16} className="text-[#00E599]" />
-                <h2 className="text-base font-bold text-white">Test Invoke</h2>
+                <Terminal size={16} className="text-primary" />
+                <h3 className="text-xs font-bold text-primary">Test Action Invocation</h3>
               </div>
-              <button onClick={() => { setInvokeToolId(null); setInvokeResult(null) }} className="text-zinc-500 hover:text-white"><X size={18} /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">JSON Payload</label>
-                <textarea rows={4} className="w-full bg-black/50 border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-mono text-[#00E599] focus:border-[#00E599]/50 outline-none resize-none"
-                  value={invokePayload} onChange={e => setInvokePayload(e.target.value)} />
-              </div>
-              <button onClick={handleInvoke} disabled={invoking}
-                className="w-full py-3 bg-[#00E599] text-black font-bold rounded-xl text-sm hover:bg-[#00E599]/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                {invoking ? <><RefreshCw size={14} className="animate-spin" /> Invoking...</> : <><Play size={14} /> Execute Tool</>}
+              <button onClick={() => { setInvokeToolId(null); setInvokeResult(null) }} className="text-secondary hover:text-primary cursor-pointer">
+                <X size={15} />
               </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-primary block mb-1">JSON Payload</label>
+                <textarea
+                  rows={4}
+                  className="w-full bg-surface-subtle border border-border rounded-[6px] p-3 text-xs font-mono text-primary focus:border-sky-600 outline-none resize-none"
+                  value={invokePayload}
+                  onChange={e => setInvokePayload(e.target.value)}
+                />
+              </div>
+              <Button variant="primary" size="md" className="w-full" onClick={handleInvoke} isLoading={invoking}>
+                <Play size={13} className="mr-1.5" /> Execute Action
+              </Button>
               {invokeResult && (
-                <div className={`rounded-xl border p-4 ${invokeResult.success ? 'bg-[#00E599]/5 border-[#00E599]/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {invokeResult.success ? <CheckCircle size={14} className="text-[#00E599]" /> : <XCircle size={14} className="text-red-400" />}
-                    <span className="text-[11px] font-bold text-zinc-400">
-                      {invokeResult.status_code} · {invokeResult.latency_ms}ms
-                    </span>
+                <div className={`rounded-[6px] border p-3 text-xs ${invokeResult.success ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-red-50 border-red-300 text-red-950'}`}>
+                  <div className="flex items-center gap-2 font-bold mb-1">
+                    {invokeResult.success ? <CheckCircle size={14} className="text-emerald-700" /> : <XCircle size={14} className="text-red-700" />}
+                    <span>Status {invokeResult.status_code} ({invokeResult.latency_ms}ms)</span>
                   </div>
-                  {invokeResult.error && <div className="text-xs text-red-400 mb-2">{invokeResult.error}</div>}
-                  <pre className="text-[10px] font-mono text-zinc-400 overflow-auto max-h-40 whitespace-pre-wrap">
+                  <pre className="text-[11px] font-mono overflow-auto max-h-36 whitespace-pre-wrap mt-1">
                     {JSON.stringify(invokeResult.response, null, 2)}
                   </pre>
                 </div>
@@ -389,8 +351,8 @@ export default function ActionsPage() {
         </div>
       )}
 
-      {showAddModal && <FormContent onSubmit={handleCreate} title="Create New Tool" />}
-      {editTool && <FormContent onSubmit={handleUpdate} title="Edit Tool" />}
+      {showAddModal && <FormContent onSubmit={handleCreate} title="Create New Action Tool" />}
+      {editTool && <FormContent onSubmit={handleUpdate} title="Edit Action Tool" />}
     </div>
   )
 }

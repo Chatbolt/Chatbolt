@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <!--
+    Chatbolt GitHub Organization Avatar
+    120×120 — renders correctly at GitHub's 40px and 80px circular clip.
+    
+    Design: Mark on a near-black background matching the product's dark-mode console color.
+    The mark is white — maximum contrast, zero ambiguity at small circular display.
+    
+    Background color: #0F172A (deepest slate from the product's dark palette — 
+    matches the telemetry-bg variable in globals.css)
+    
+    The mark is scaled up and centered to fill the avatar space, accounting for
+    GitHub's circular clip. Pillars are heavier-weight to survive the circular crop.
+    
+    At 40px circle (GitHub nav avatar): reads as three bars over a line — clear.
+    At 80px (GitHub org page): full proportions visible.
+  -->
+  
+  <!-- Background -->
+  <rect width="120" height="120" fill="#0F172A"/>
+  
+  <!-- Mark: scaled to fill avatar space with breathing room for circular crop -->
+  <!-- Left pillar -->
+  <rect x="18" y="48" width="22" height="46" fill="#F8FAFC"/>
+  
+  <!-- Center pillar (tallest) -->
+  <rect x="49" y="24" width="22" height="70" fill="#F8FAFC"/>
+  
+  <!-- Right pillar -->
+  <rect x="80" y="48" width="22" height="46" fill="#F8FAFC"/>
+
+  <!-- Baseline — using brand accent teal -->
+  <rect x="18" y="98" width="84" height="4" fill="#00DFB8"/>
+</svg>

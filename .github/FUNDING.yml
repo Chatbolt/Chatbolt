@@ -1,0 +1,9 @@
+# These settings configure funding links shown in the "Sponsor" button on the repository.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# GitHub Sponsors — replace with your actual username if you set one up
+# github: AbhinavKatare
+
+# Custom sponsorship or enterprise inquiry link
+custom:
+  - https://github.com/AbhinavKatare/chatbolt/issues/new?template=feature_request.md&title=[Enterprise]%20License%20Inquiry

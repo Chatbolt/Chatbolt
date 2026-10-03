@@ -1,6 +1,8 @@
+import time
 from fastapi import APIRouter, HTTPException
 from app.schemas import StepRequest, StepResponse, CriticRequest, CriticResponse
 from app.graph.react_engine import run_react_step
+from app.observability import tracer
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -9,13 +11,59 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 async def execute_agent_step(request: StepRequest):
     """
     Executes a single reasoning step in the LangGraph ReAct loop.
-    Returns structured tool calls for the Go runtime to execute,
-    or the final completed response.
+    Instruments with OpenTelemetry spans and metrics.
     """
+    trace_id = tracer.generate_trace_id()
+    span_id = tracer.generate_span_id()
+    start_ns = time.time_ns()
+
     try:
         response = run_react_step(request)
+        end_ns = time.time_ns()
+        
+        tool_names = [tc.tool_name for tc in (response.tool_calls or [])]
+        
+        # Async emit span
+        await tracer.emit_span(
+            run_id=request.run_id,
+            span_id=span_id,
+            parent_span_id=None,
+            trace_id=trace_id,
+            name=f"react_step:{request.agent_role}",
+            span_type="llm" if not tool_names else "tool",
+            start_time_ns=start_ns,
+            end_time_ns=end_ns,
+            status_code=1,
+            attributes={
+                "agent.role": request.agent_role,
+                "agent.name": request.agent_name or "",
+                "step.action": response.action or "reasoning",
+                "tool.count": len(tool_names),
+                "tool.names": ", ".join(tool_names),
+                "tokens.prompt": response.metrics.prompt_tokens if response.metrics else 0,
+                "tokens.completion": response.metrics.completion_tokens if response.metrics else 0,
+                "cost.usd": response.metrics.cost_usd if response.metrics else 0.0
+            }
+        )
         return response
     except Exception as e:
+        end_ns = time.time_ns()
+        await tracer.emit_span(
+            run_id=request.run_id,
+            span_id=span_id,
+            parent_span_id=None,
+            trace_id=trace_id,
+            name=f"react_step:{request.agent_role}",
+            span_type="llm",
+            start_time_ns=start_ns,
+            end_time_ns=end_ns,
+            status_code=2,
+            error_message=str(e),
+            attributes={
+                "agent.role": request.agent_role,
+                "error.type": type(e).__name__
+            }
+        )
         raise HTTPException(status_code=500, detail=f"ReAct reasoning error: {str(e)}")
 
 @router.post("/critic", response_model=CriticResponse)
@@ -24,9 +72,12 @@ async def execute_critic_review(request: CriticRequest):
     Evaluates draft agent output against quality/safety criteria and produces
     critique feedback with an improved revision if output is low quality.
     """
+    trace_id = tracer.generate_trace_id()
+    span_id = tracer.generate_span_id()
+    start_ns = time.time_ns()
+
     try:
         draft = request.draft_output or ""
-        # Rule-based & heuristic quality evaluation
         issues = []
         if len(draft.split()) < 8:
             issues.append("Draft output is too brief/underspecified.")
@@ -42,6 +93,24 @@ async def execute_critic_review(request: CriticRequest):
         else:
             improved = f"Enhanced Comprehensive Report for '{request.task}':\n\n1. Overview & Strategy:\n{draft}\n\n2. Key Insights:\n- Detailed market & technical viability confirmed.\n- Autonomous workflow execution validated."
 
+        end_ns = time.time_ns()
+        await tracer.emit_span(
+            run_id=request.run_id,
+            span_id=span_id,
+            parent_span_id=None,
+            trace_id=trace_id,
+            name="critic_evaluation",
+            span_type="critic",
+            start_time_ns=start_ns,
+            end_time_ns=end_ns,
+            status_code=1,
+            attributes={
+                "critic.passed": str(passed),
+                "critic.score": str(score),
+                "critic.issues": ", ".join(issues)
+            }
+        )
+
         return CriticResponse(
             run_id=request.run_id,
             passed=passed,
@@ -50,6 +119,19 @@ async def execute_critic_review(request: CriticRequest):
             improved_output=improved
         )
     except Exception as e:
+        end_ns = time.time_ns()
+        await tracer.emit_span(
+            run_id=request.run_id,
+            span_id=span_id,
+            parent_span_id=None,
+            trace_id=trace_id,
+            name="critic_evaluation",
+            span_type="critic",
+            start_time_ns=start_ns,
+            end_time_ns=end_ns,
+            status_code=2,
+            error_message=str(e)
+        )
         raise HTTPException(status_code=500, detail=f"Critic pass error: {str(e)}")
 
 @router.get("/providers")

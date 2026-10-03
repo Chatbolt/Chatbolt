@@ -13,6 +13,7 @@ import (
 	"agent-runtime/pkg/circuitbreaker"
 	"agent-runtime/pkg/concurrency"
 	"agent-runtime/pkg/metrics"
+	"agent-runtime/pkg/observability"
 	"agent-runtime/pkg/sandbox"
 )
 
@@ -23,6 +24,10 @@ type RuntimeService struct {
 	bus            *bus.AgentBus
 	circuitBreaker *circuitbreaker.Registry
 	metrics        *metrics.Collector
+	obsStore       *observability.Store
+	obsTracer      *observability.Tracer
+	obsDetector    *observability.Engine
+	obsHTTP        *observability.HTTPHandler
 	mu             sync.RWMutex
 }
 
@@ -33,6 +38,32 @@ func NewRuntimeService(
 	cb *circuitbreaker.Registry,
 	col *metrics.Collector,
 ) *RuntimeService {
+	// Initialize high-performance in-memory observability store
+	obsStore := observability.NewStore("")
+
+	// Initialize detection rules engine with supervisor alert recovery hook
+	obsDetector := observability.NewEngine(
+		observability.DefaultDetectionConfig(),
+		obsStore,
+		func(teamID, agentID, runID, reason string, finding observability.Finding) error {
+			// Wire detection findings directly into failure recovery paths
+			payloadBytes, _ := json.Marshal(finding)
+			_, err := agentBus.Publish(&bus.Message{
+				TargetTopic:   "supervisor:alert",
+				RunID:         runID,
+				SenderAgentID: agentID,
+				EventType:     "observability_finding_alert",
+				PayloadJSON:   string(payloadBytes),
+				TimestampMs:   time.Now().UnixMilli(),
+			})
+			return err
+		},
+	)
+	obsDetector.Start()
+
+	obsTracer := observability.NewTracer(obsStore, obsDetector)
+	obsHTTP := observability.NewHTTPHandler(obsStore, obsTracer, obsDetector)
+
 	return &RuntimeService{
 		pool:           pool,
 		sandboxExec:    exec,
@@ -40,21 +71,38 @@ func NewRuntimeService(
 		bus:            agentBus,
 		circuitBreaker: cb,
 		metrics:        col,
+		obsStore:       obsStore,
+		obsTracer:      obsTracer,
+		obsDetector:    obsDetector,
+		obsHTTP:        obsHTTP,
 	}
 }
 
 // ExecuteSandboxCode runs sandboxed code inside the bounded worker pool and protected by circuit breaker
 func (s *RuntimeService) ExecuteSandboxCode(ctx context.Context, opts sandbox.ExecutionOptions) (*sandbox.ExecutionResult, error) {
+	// Create Observability Span for Sandbox Execution
+	runID := opts.RunID
+	if runID == "" {
+		runID = fmt.Sprintf("run_sb_%s", opts.ExecutionID)
+	}
+	_, span := s.obsTracer.StartSpan(ctx, runID, "", fmt.Sprintf("sandbox:%s", opts.Language), observability.SpanTypeSandbox, opts.Code, map[string]interface{}{
+		"language":     opts.Language,
+		"execution_id": opts.ExecutionID,
+		"timeout_sec":  opts.TimeoutSeconds,
+	})
+
 	// 1. Circuit breaker check for sandbox
 	allowed, err := s.circuitBreaker.Allow("sandbox")
 	if !allowed {
-		return &sandbox.ExecutionResult{
+		res := &sandbox.ExecutionResult{
 			ExecutionID:   opts.ExecutionID,
 			Success:       false,
 			ExitCode:      503,
 			Stderr:        fmt.Sprintf("Sandbox execution circuit breaker is OPEN: %v", err),
 			IsolationMode: "circuit_broken",
-		}, nil
+		}
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, res, fmt.Errorf("circuit breaker open"))
+		return res, nil
 	}
 
 	// 2. Submit to bounded worker pool
@@ -65,20 +113,24 @@ func (s *RuntimeService) ExecuteSandboxCode(ctx context.Context, opts sandbox.Ex
 
 	if err != nil {
 		s.circuitBreaker.RecordFailure("sandbox")
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, nil, err)
 		return nil, fmt.Errorf("worker pool execution error: %w", err)
 	}
 
 	res, ok := resultVal.(*sandbox.ExecutionResult)
 	if !ok || res == nil {
 		s.circuitBreaker.RecordFailure("sandbox")
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, nil, fmt.Errorf("invalid execution result"))
 		return nil, fmt.Errorf("invalid execution result returned")
 	}
 
-	// Record success/failure in circuit breaker
+	// Record success/failure in circuit breaker & observability
 	if res.Success {
 		s.circuitBreaker.RecordSuccess("sandbox")
-	} else if res.TimedOut || res.ExitCode != 0 {
+		s.obsTracer.EndSpan(span, observability.SpanStatusOk, res, nil)
+	} else {
 		s.circuitBreaker.RecordFailure("sandbox")
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, res, fmt.Errorf("%s", res.Stderr))
 	}
 
 	return res, nil
@@ -93,17 +145,28 @@ func (s *RuntimeService) ExecuteAgentStep(
 ) error {
 	defer close(statusCh)
 
+	// Start Observability Agent Span
+	_, span := s.obsTracer.StartSpan(ctx, runID, "", fmt.Sprintf("step:%s:%s", role, actionType), observability.SpanTypeAgent, payloadJSON, map[string]interface{}{
+		"step_id":     stepID,
+		"agent_id":    agentID,
+		"agent_role":  role,
+		"action_type": actionType,
+		"tenant_id":   tenantID,
+	})
+
 	// 1. Check circuit breaker for this specific agent role
 	roleKey := fmt.Sprintf("role:%s", role)
 	allowed, err := s.circuitBreaker.Allow(roleKey)
 	if !allowed {
+		errMsg := fmt.Sprintf("Circuit breaker is OPEN for agent role '%s': %v", role, err)
 		statusCh <- map[string]interface{}{
 			"run_id":        runID,
 			"step_id":       stepID,
 			"status":        "CIRCUIT_BROKEN",
-			"error_message": fmt.Sprintf("Circuit breaker is OPEN for agent role '%s': %v", role, err),
+			"error_message": errMsg,
 			"timestamp_ms":  time.Now().UnixMilli(),
 		}
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, nil, fmt.Errorf("%s", errMsg))
 		return nil
 	}
 
@@ -139,6 +202,7 @@ func (s *RuntimeService) ExecuteAgentStep(
 
 			execRes, err := s.sandboxExec.ExecuteCode(taskCtx, sandbox.ExecutionOptions{
 				ExecutionID:    fmt.Sprintf("%s-%s", runID, stepID),
+				RunID:          runID,
 				Language:       payload.Language,
 				Code:           payload.Code,
 				TimeoutSeconds: timeoutSec,
@@ -159,6 +223,7 @@ func (s *RuntimeService) ExecuteAgentStep(
 					"error_message": errMsg,
 					"timestamp_ms":  time.Now().UnixMilli(),
 				}
+				s.obsTracer.EndSpan(span, observability.SpanStatusError, nil, fmt.Errorf("%s", errMsg))
 				return nil, fmt.Errorf("%s", errMsg)
 			}
 
@@ -171,6 +236,7 @@ func (s *RuntimeService) ExecuteAgentStep(
 				"timestamp_ms": time.Now().UnixMilli(),
 			}
 			s.circuitBreaker.RecordSuccess(roleKey)
+			s.obsTracer.EndSpan(span, observability.SpanStatusOk, string(resBytes), nil)
 			return execRes, nil
 		}
 
@@ -184,11 +250,13 @@ func (s *RuntimeService) ExecuteAgentStep(
 			"timestamp_ms": time.Now().UnixMilli(),
 		}
 		s.circuitBreaker.RecordSuccess(roleKey)
+		s.obsTracer.EndSpan(span, observability.SpanStatusOk, `{"status":"success"}`, nil)
 		return nil, nil
 	})
 
 	if execErr != nil {
 		s.circuitBreaker.RecordFailure(roleKey)
+		s.obsTracer.EndSpan(span, observability.SpanStatusError, nil, execErr)
 	}
 
 	return execErr
@@ -205,6 +273,9 @@ func (s *RuntimeService) RegisterHTTPRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/agent/step", s.handleAgentStep)
 	mux.HandleFunc("/api/bus/publish", s.handleBusPublish)
 	mux.HandleFunc("/api/bus/subscribe", s.handleBusSubscribe)
+
+	// Attach full OpenTelemetry OTLP & Observability endpoints
+	s.obsHTTP.RegisterRoutes(mux)
 }
 
 func (s *RuntimeService) handleHealth(w http.ResponseWriter, r *http.Request) {

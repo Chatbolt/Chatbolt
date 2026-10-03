@@ -3,18 +3,18 @@ import React from 'react'
 import { Bot, Search, PenLine, Mail, Code2, Database, Table2, BarChart2, Play, Edit3, Info } from 'lucide-react'
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  researcher:     { bg: 'rgba(37, 99, 235, 0.1)', text: '#60A5FA', label: 'Researcher' },
-  writer:         { bg: 'rgba(124, 58, 237, 0.1)', text: '#C084FC', label: 'Writer' },
-  email_sender:   { bg: 'rgba(22, 163, 74, 0.1)', text: '#4ADE80', label: 'Email Sender' },
-  scraper:        { bg: 'rgba(234, 88, 12, 0.1)', text: '#FB923C', label: 'Scraper' },
-  web_scraper:    { bg: 'rgba(234, 88, 12, 0.1)', text: '#FB923C', label: 'Scraper' },
-  spreadsheet:    { bg: 'rgba(5, 150, 105, 0.1)', text: '#34D399', label: 'Spreadsheet' },
-  data_processor: { bg: 'rgba(8, 145, 178, 0.1)', text: '#22D3EE', label: 'Data' },
-  code:           { bg: 'rgba(225, 29, 72, 0.1)', text: '#F43F5E', label: 'Coder' },
-  coder:          { bg: 'rgba(225, 29, 72, 0.1)', text: '#F43F5E', label: 'Coder' },
-  analyzer:       { bg: 'rgba(202, 138, 4, 0.1)', text: '#FBBF24', label: 'Analyzer' },
-  summarizer:     { bg: 'rgba(124, 58, 237, 0.1)', text: '#C084FC', label: 'Summarizer' },
-  reporter:       { bg: 'rgba(124, 58, 237, 0.1)', text: '#C084FC', label: 'Reporter' },
+  researcher:     { bg: '#EFF6FF', text: '#1E40AF', label: 'Researcher' },
+  writer:         { bg: '#FAF5FF', text: '#6B21A8', label: 'Writer' },
+  email_sender:   { bg: '#ECFDF5', text: '#065F46', label: 'Email Sender' },
+  scraper:        { bg: '#FFF7ED', text: '#9A3412', label: 'Scraper' },
+  web_scraper:    { bg: '#FFF7ED', text: '#9A3412', label: 'Scraper' },
+  spreadsheet:    { bg: '#ECFDF5', text: '#047857', label: 'Spreadsheet' },
+  data_processor: { bg: '#ECFEFF', text: '#155E75', label: 'Data' },
+  code:           { bg: '#FFF1F2', text: '#9F1239', label: 'Coder' },
+  coder:          { bg: '#FFF1F2', text: '#9F1239', label: 'Coder' },
+  analyzer:       { bg: '#FEFCE8', text: '#854D0E', label: 'Analyzer' },
+  summarizer:     { bg: '#FAF5FF', text: '#6B21A8', label: 'Summarizer' },
+  reporter:       { bg: '#FAF5FF', text: '#6B21A8', label: 'Reporter' },
 }
 
 const ROLE_ICONS: Record<string, any> = {
@@ -25,11 +25,11 @@ const ROLE_ICONS: Record<string, any> = {
 }
 
 const STATUS_CONFIG = {
-  idle:      { dot: 'bg-zinc-600',  text: 'Idle',       border: 'border-white/[0.06]', shadow: '' },
-  running:   { dot: 'bg-[#00E599] animate-pulse', text: 'Running...', border: 'border-[#00E599] shadow-[0_0_12px_rgba(0,229,153,0.3)]', shadow: '' },
-  completed: { dot: 'bg-[#00E599]', text: 'Done ✓',     border: 'border-[#00E599]/30', shadow: '' },
-  failed:    { dot: 'bg-rose-500',   text: 'Error',      border: 'border-rose-500/30', shadow: '' },
-  waiting:   { dot: 'bg-amber-400', text: 'Waiting...', border: 'border-white/[0.06]', shadow: '' },
+  idle:      { dot: 'bg-gray-400',  text: 'Idle',       border: 'border-border', shadow: 'shadow-xs' },
+  running:   { dot: 'bg-sky-600 animate-pulse', text: 'Running...', border: 'border-border-strong ring-1 ring-border-strong', shadow: 'shadow-xs' },
+  completed: { dot: 'bg-emerald-600', text: 'Completed', border: 'border-emerald-200', shadow: 'shadow-xs' },
+  failed:    { dot: 'bg-rose-600',   text: 'Failed',     border: 'border-rose-200', shadow: 'shadow-xs' },
+  waiting:   { dot: 'bg-amber-500', text: 'Waiting...', border: 'border-amber-200', shadow: 'shadow-xs' },
 }
 
 interface AgentNodeProps {
@@ -54,54 +54,53 @@ export function AgentNode({ agent, position, x, y, status, outputSummary, onMous
 
   return (
     <div
-      style={{ position: 'absolute', left: x, top: y, width: 200, zIndex: selected ? 20 : 10, userSelect: 'none' }}
+      style={{ position: 'absolute', left: x, top: y, width: 220, zIndex: selected ? 20 : 10, userSelect: 'none' }}
       onMouseDown={onMouseDown}
     >
-      <div className={`bg-[#0D0D11]/95 border rounded-2xl backdrop-blur-md transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${statusCfg.border} ${selected ? 'scale-[1.02] border-[#00E599]' : 'hover:scale-[1.01]'}`}
-        style={{ boxShadow: status === 'running' ? '0 0 15px rgba(0,229,153,0.2), 0 4px 20px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.4)' }}>
+      <div className={`bg-surface border rounded-lg transition-all duration-200 cursor-grab active:cursor-grabbing select-none ${statusCfg.border} ${statusCfg.shadow} ${selected ? 'ring-2 ring-action-primary border-transparent' : 'hover:border-border-strong'}`}>
         
         {/* Header */}
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-          <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 text-[9px] font-black shrink-0">
+        <div className="px-3.5 pt-3 pb-1.5 flex items-center justify-between">
+          <div className="w-5 h-5 rounded bg-secondary border border-border flex items-center justify-center text-primary text-[10px] font-mono font-bold shrink-0">
             {String(position).padStart(2,'0')}
           </div>
-          <div className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest"
-            style={{ background: roleConfig.bg, color: roleConfig.text }}>
+          <div className="px-2 py-0.5 rounded text-[10px] font-semibold border"
+            style={{ background: roleConfig.bg, color: roleConfig.text, borderColor: `${roleConfig.text}25` }}>
             {roleConfig.label}
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-4 pb-3">
-          <div className="flex items-center gap-2 mb-1">
-            <RoleIcon size={14} style={{ color: roleConfig.text }} className="shrink-0" />
-            <div className="text-[12px] font-bold text-white truncate leading-tight">{agent.name}</div>
+        <div className="px-3.5 pb-2">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <RoleIcon size={13} style={{ color: roleConfig.text }} className="shrink-0" />
+            <div className="text-xs font-bold text-primary truncate leading-tight">{agent.name}</div>
           </div>
-          <p className="text-[10px] text-zinc-400 leading-snug line-clamp-2">{agent.description}</p>
+          <p className="text-[11px] text-secondary leading-snug line-clamp-2">{agent.description}</p>
         </div>
 
         {/* Output preview */}
         {outputSummary && (
-          <div className="mx-4 mb-2 px-2 py-1 bg-white/[0.02] rounded-lg border border-white/5">
-            <p className="text-[9px] text-zinc-500 line-clamp-2">{outputSummary}</p>
+          <div className="mx-3.5 mb-2 px-2 py-1 bg-secondary rounded border border-border">
+            <p className="text-[10px] text-secondary line-clamp-2">{outputSummary}</p>
           </div>
         )}
 
         {/* Status */}
-        <div className="px-4 pb-3 flex items-center gap-1.5">
+        <div className="px-3.5 pb-2 flex items-center gap-1.5">
           <div className={`w-2 h-2 rounded-full ${statusCfg.dot}`} />
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">{statusCfg.text}</span>
+          <span className="text-[10px] font-mono text-muted uppercase tracking-wider">{statusCfg.text}</span>
         </div>
 
         {/* Actions */}
-        <div className="px-3 pb-3 grid grid-cols-3 gap-1.5" onMouseDown={e => e.stopPropagation()}>
+        <div className="px-3 pb-3 grid grid-cols-3 gap-1" onMouseDown={e => e.stopPropagation()}>
           {[
             { label: 'Details', icon: Info, fn: onDetails },
             { label: 'Edit', icon: Edit3, fn: onEdit },
             { label: 'Test', icon: Play, fn: onTest },
           ].map(({ label, icon: Icon, fn }) => (
             <button key={label} onClick={fn}
-              className="py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[9px] font-bold text-zinc-400 hover:bg-white/10 hover:text-white hover:border-[#00E599]/30 transition-all flex items-center justify-center gap-1">
+              className="py-1 rounded bg-surface border border-border text-[10px] font-medium text-secondary hover:text-primary hover:bg-secondary transition-all flex items-center justify-center gap-1 cursor-pointer shadow-xs">
               <Icon size={10} />{label}
             </button>
           ))}

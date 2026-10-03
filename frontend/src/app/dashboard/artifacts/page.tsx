@@ -225,52 +225,52 @@ export default function ArtifactsPage() {
 
   const getTypeIcon = (type: Artifact['artifact_type']) => {
     switch (type) {
-      case 'pdf': return <FileText className="text-red-400" size={16} />
-      case 'spreadsheet': return <FileSpreadsheet className="text-[#00E599]" size={16} />
-      case 'presentation': return <Tv className="text-blue-400" size={16} />
-      case 'brief': return <Clipboard className="text-amber-400" size={16} />
-      case 'dataset': return <Database className="text-purple-400" size={16} />
-      default: return <HardDrive className="text-zinc-400" size={16} />
+      case 'pdf': return <FileText className="text-signal-red" size={16} />
+      case 'spreadsheet': return <FileSpreadsheet className="text-signal-green" size={16} />
+      case 'presentation': return <Tv className="text-signal-blue" size={16} />
+      case 'brief': return <Clipboard className="text-signal-amber" size={16} />
+      case 'dataset': return <Database className="text-primary" size={16} />
+      default: return <HardDrive className="text-muted" size={16} />
     }
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#050507] text-[#EDEDED] overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-background text-primary overflow-y-auto custom-scrollbar font-sans">
 
       {/* Header Panel */}
-      <div className="h-14 border-b border-white/[0.04] bg-[#070709]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10">
+      <div className="h-14 border-b border-border bg-surface/90 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <Layers size={16} className="text-[#00E599]" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-zinc-400">Versioned Artifacts Explorer</span>
+          <Layers size={16} className="text-signal-blue" />
+          <span className="text-xs font-bold uppercase tracking-wider text-secondary">Versioned Artifacts Explorer</span>
         </div>
         <div className="flex items-center gap-2">
           {selectedProjectId && (
-            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#00E599] text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#00E599]/90 transition-all">
-              <Plus size={12} /> Create Artifact
+            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-3.5 py-1.5 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover transition-all shadow-xs cursor-pointer">
+              <Plus size={13} /> Create Artifact
             </button>
           )}
         </div>
       </div>
 
       {/* Scope Selectors */}
-      <div className="bg-[#09090B] border-b border-white/[0.04] px-6 py-3 flex items-center gap-4 flex-wrap shrink-0">
+      <div className="bg-subtle border-b border-border px-6 py-3 flex items-center gap-4 flex-wrap shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Workspace</span>
+          <span className="text-xs font-semibold text-muted">Workspace</span>
           <select 
             value={selectedWorkspaceId} 
             onChange={e => setSelectedWorkspaceId(e.target.value)}
-            className="bg-[#0D0D11] border border-white/[0.06] text-xs text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00E599]/40"
+            className="bg-surface border border-border text-xs text-primary rounded-md px-2.5 py-1.5 outline-none focus:border-signal-blue cursor-pointer shadow-xs"
           >
             {workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Project</span>
+          <span className="text-xs font-semibold text-muted">Project</span>
           <select 
             value={selectedProjectId} 
             onChange={e => setSelectedProjectId(e.target.value)}
-            className="bg-[#0D0D11] border border-white/[0.06] text-xs text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00E599]/40 min-w-[140px]"
+            className="bg-surface border border-border text-xs text-primary rounded-md px-2.5 py-1.5 outline-none focus:border-signal-blue min-w-[140px] cursor-pointer shadow-xs"
             disabled={projects.length === 0}
           >
             {projects.length === 0 ? (
@@ -286,23 +286,23 @@ export default function ArtifactsPage() {
       <div className="flex-1 flex overflow-hidden min-h-0">
         
         {/* Left Column: Artifacts list */}
-        <div className="w-1/2 border-r border-white/[0.04] flex flex-col min-h-0 bg-[#070709]/30">
-          <div className="px-5 py-3 border-b border-white/[0.04] flex items-center justify-between shrink-0">
-            <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Project Assets ({artifacts.length})</span>
-            <button onClick={loadArtifacts} className="p-1 bg-white/[0.03] border border-white/[0.06] rounded text-zinc-500 hover:text-white transition-all">
+        <div className="w-1/2 border-r border-border flex flex-col min-h-0 bg-subtle">
+          <div className="px-5 py-3 border-b border-border flex items-center justify-between shrink-0 bg-surface">
+            <span className="text-xs font-bold text-secondary uppercase tracking-wider">Project Assets ({artifacts.length})</span>
+            <button onClick={loadArtifacts} className="p-1 bg-surface border border-border rounded text-muted hover:text-primary transition-all cursor-pointer">
               <RefreshCw size={12} />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2.5">
             {loading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="animate-spin text-[#00E599]" size={20} />
+                <Loader2 className="animate-spin text-signal-blue" size={20} />
               </div>
             ) : artifacts.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="mx-auto text-zinc-700 mb-3" size={28} />
-                <div className="text-zinc-500 text-xs font-semibold">No versioned artifacts in this project.</div>
+                <FileText className="mx-auto text-muted/60 mb-2" size={28} />
+                <div className="text-muted text-xs font-medium">No versioned artifacts in this project.</div>
               </div>
             ) : (
               artifacts.map(art => {
@@ -312,30 +312,30 @@ export default function ArtifactsPage() {
                   <div
                     key={art.id}
                     onClick={() => handleSelectArtifact(art)}
-                    className={`bg-[#0D0D11] border rounded-xl p-4 cursor-pointer hover:border-white/10 transition-all relative group ${
-                      isSelected ? 'border-[#00E599]/30 bg-[#00E599]/[0.02]' : 'border-white/[0.05]'
+                    className={`bg-surface border rounded-lg p-4 cursor-pointer hover:border-signal-blue/40 transition-all relative group shadow-xs ${
+                      isSelected ? 'border-signal-blue ring-1 ring-signal-blue bg-signal-blue-bg/30' : 'border-border'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white/[0.02] border border-white/[0.05] rounded-lg">
+                      <div className="p-2 bg-secondary border border-border rounded-md">
                         {getTypeIcon(art.artifact_type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white truncate flex items-center gap-2">
+                        <div className="text-xs font-bold text-primary truncate flex items-center gap-2">
                           {art.name}
                           {isLocked && (
-                            <span className="flex items-center gap-1 text-[8px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full font-black uppercase tracking-widest">
-                              <Lock size={8} /> locked
+                            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-signal-amber-bg text-signal-amber border border-signal-amber-border rounded font-semibold">
+                              <Lock size={9} /> locked
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-zinc-500 truncate mt-1">
-                          Type: <span className="text-zinc-400 uppercase font-mono">{art.artifact_type}</span> · Version: <span className="text-[#00E599] font-bold">v{art.latest_version || 0}</span>
+                        <div className="text-[11px] text-muted truncate mt-0.5">
+                          Type: <span className="text-secondary font-medium uppercase font-mono">{art.artifact_type}</span> · Version: <span className="text-signal-blue font-bold">v{art.latest_version || 0}</span>
                         </div>
                       </div>
                     </div>
                     {art.latest_summary && (
-                      <div className="mt-3 text-[10px] text-zinc-400 bg-black/20 p-2.5 rounded-lg border border-white/[0.03] italic line-clamp-2">
+                      <div className="mt-2.5 text-xs text-secondary bg-secondary p-2.5 rounded-md border border-border italic line-clamp-2">
                         {art.latest_summary}
                       </div>
                     )}
@@ -347,88 +347,88 @@ export default function ArtifactsPage() {
         </div>
 
         {/* Right Column: Versions timeline & metadata panel */}
-        <div className="w-1/2 flex flex-col min-h-0 bg-[#050507]">
+        <div className="w-1/2 flex flex-col min-h-0 bg-background">
           {selectedArtifact ? (
             <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar p-6 space-y-6">
               
               {/* Header Details */}
-              <div className="bg-[#0D0D11] border border-white/[0.05] rounded-2xl p-5 space-y-4">
+              <div className="bg-surface border border-border rounded-lg p-5 space-y-4 shadow-xs">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white/[0.03] border border-white/[0.05] rounded-xl shrink-0">
+                    <div className="p-2.5 bg-secondary border border-border rounded-md shrink-0">
                       {getTypeIcon(selectedArtifact.artifact_type)}
                     </div>
                     <div>
-                      <h4 className="text-sm font-black text-white">{selectedArtifact.name}</h4>
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono mt-0.5">{selectedArtifact.artifact_type}</div>
+                      <h4 className="text-sm font-bold text-primary">{selectedArtifact.name}</h4>
+                      <div className="text-xs text-muted uppercase font-mono mt-0.5">{selectedArtifact.artifact_type}</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     {selectedArtifact.locked_by_user_id ? (
                       <button 
                         onClick={() => handleUnlock(selectedArtifact)}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-amber-500/20"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-signal-amber-bg text-signal-amber border border-signal-amber-border rounded-md text-xs font-semibold hover:bg-signal-amber/20 cursor-pointer"
                       >
-                        <Unlock size={10} /> Release Lock
+                        <Unlock size={12} /> Release Lock
                       </button>
                     ) : (
                       <button 
                         onClick={() => handleLock(selectedArtifact)}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-white/[0.03] border border-white/[0.06] text-zinc-300 rounded-lg text-[9px] font-black uppercase tracking-wider hover:text-white hover:border-white/10"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-surface border border-border text-secondary rounded-md text-xs font-semibold hover:text-primary hover:bg-subtle cursor-pointer shadow-xs"
                       >
-                        <Lock size={10} /> Edit Lock
+                        <Lock size={12} /> Edit Lock
                       </button>
                     )}
                     
                     {(!selectedArtifact.locked_by_user_id || selectedArtifact.locked_by_user_id === 'agent') && (
                       <button
                         onClick={() => setShowVersionModal(true)}
-                        className="flex items-center gap-1 px-2.5 py-1 bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-[#00E599]/20"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover shadow-xs cursor-pointer"
                       >
-                        <Plus size={10} /> Commit Version
+                        <Plus size={12} /> Commit Version
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* Metadata tags */}
-                <div className="border-t border-white/[0.04] pt-4 grid grid-cols-3 gap-3 text-[10px]">
+                <div className="border-t border-border pt-3.5 grid grid-cols-3 gap-3 text-xs">
                   <div className="space-y-1">
-                    <div className="text-zinc-600 font-bold uppercase tracking-wider">Linked Agents</div>
+                    <div className="text-muted font-semibold">Linked Agents</div>
                     <div className="flex flex-wrap gap-1">
                       {selectedArtifact.metadata?.linked_agents?.length > 0 ? (
                         selectedArtifact.metadata.linked_agents.map((a, idx) => (
-                          <span key={idx} className="px-1.5 py-0.5 bg-white/[0.03] text-zinc-400 rounded border border-white/[0.05]">{a}</span>
+                          <span key={idx} className="px-2 py-0.5 bg-secondary text-secondary rounded border border-border text-[11px]">{a}</span>
                         ))
                       ) : (
-                        <span className="text-zinc-600 font-mono italic">None linked</span>
+                        <span className="text-muted italic">None linked</span>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-zinc-600 font-bold uppercase tracking-wider">Linked Memory</div>
+                    <div className="text-muted font-semibold">Linked Memory</div>
                     <div className="flex flex-wrap gap-1">
                       {selectedArtifact.metadata?.linked_memory?.length > 0 ? (
                         selectedArtifact.metadata.linked_memory.map((m, idx) => (
-                          <span key={idx} className="px-1.5 py-0.5 bg-white/[0.03] text-zinc-400 rounded border border-white/[0.05]">{m}</span>
+                          <span key={idx} className="px-2 py-0.5 bg-secondary text-secondary rounded border border-border text-[11px]">{m}</span>
                         ))
                       ) : (
-                        <span className="text-zinc-600 font-mono italic">None linked</span>
+                        <span className="text-muted italic">None linked</span>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-zinc-600 font-bold uppercase tracking-wider">Source Tasks</div>
+                    <div className="text-muted font-semibold">Source Tasks</div>
                     <div className="flex flex-wrap gap-1">
                       {selectedArtifact.metadata?.source_tasks?.length > 0 ? (
                         selectedArtifact.metadata.source_tasks.map((t, idx) => (
-                          <span key={idx} className="px-1.5 py-0.5 bg-white/[0.03] text-zinc-400 rounded border border-white/[0.05]">{t}</span>
+                          <span key={idx} className="px-2 py-0.5 bg-secondary text-secondary rounded border border-border text-[11px]">{t}</span>
                         ))
                       ) : (
-                        <span className="text-zinc-600 font-mono italic">None linked</span>
+                        <span className="text-muted italic">None linked</span>
                       )}
                     </div>
                   </div>
@@ -436,46 +436,46 @@ export default function ArtifactsPage() {
               </div>
 
               {/* Version History Log */}
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div className="flex items-center gap-2">
-                  <History size={14} className="text-zinc-500" />
-                  <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Immutable Rollback Timeline</span>
+                  <History size={15} className="text-signal-blue" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-secondary">Immutable Rollback Timeline</span>
                 </div>
 
                 {loadingVersions ? (
                   <div className="flex justify-center py-6">
-                    <Loader2 className="animate-spin text-zinc-600" size={16} />
+                    <Loader2 className="animate-spin text-muted" size={18} />
                   </div>
                 ) : versions.length === 0 ? (
-                  <div className="bg-[#0D0D11] border border-white/[0.05] rounded-xl p-6 text-center text-zinc-500 text-xs">
+                  <div className="bg-surface border border-border rounded-lg p-6 text-center text-muted text-xs shadow-xs">
                     No committed versions. Lock and save a draft to create version v1.
                   </div>
                 ) : (
-                  <div className="relative border-l border-white/[0.06] ml-2 pl-6 space-y-6">
+                  <div className="relative border-l-2 border-border ml-2 pl-6 space-y-4">
                     {versions.map(ver => (
                       <div key={ver.id} className="relative group">
                         {/* Timeline dot */}
-                        <div className="absolute -left-[30px] top-1 w-2.5 h-2.5 rounded-full bg-[#00E599] border-2 border-[#050507] group-hover:scale-125 transition-transform shadow-[0_0_6px_#00E599]" />
+                        <div className="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-signal-blue border-2 border-surface shadow-xs" />
                         
-                        <div className="bg-[#0D0D11] border border-white/[0.05] rounded-xl p-4 space-y-2 hover:border-white/10 transition-colors">
+                        <div className="bg-surface border border-border rounded-lg p-4 space-y-2 hover:border-signal-blue/40 transition-colors shadow-xs">
                           <div className="flex items-center justify-between flex-wrap gap-2">
-                            <span className="text-xs font-black text-white">Version v{ver.version_number}</span>
-                            <span className="text-[9px] text-zinc-500 font-mono">{new Date(ver.created_at).toLocaleString()}</span>
+                            <span className="text-xs font-bold text-primary">Version v{ver.version_number}</span>
+                            <span className="text-xs text-muted font-mono">{new Date(ver.created_at).toLocaleString()}</span>
                           </div>
                           
                           {ver.change_description && (
-                            <div className="text-[10px] text-[#00E599] font-bold bg-[#00E599]/[0.03] px-2 py-1 rounded inline-block border border-[#00E599]/10">
-                              ⚡ {ver.change_description}
+                            <div className="text-xs text-signal-blue font-semibold bg-signal-blue-bg px-2.5 py-1 rounded border border-signal-blue-border inline-block">
+                              {ver.change_description}
                             </div>
                           )}
 
-                          <div className="text-xs text-zinc-400 bg-black/20 p-3 rounded-lg border border-white/[0.03] space-y-1 font-mono leading-relaxed whitespace-pre-wrap">
-                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">Cached Semantic Summary</div>
+                          <div className="text-xs text-secondary bg-subtle p-3 rounded-md border border-border space-y-1 font-mono leading-relaxed whitespace-pre-wrap">
+                            <div className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Cached Semantic Summary</div>
                             {ver.summary}
                           </div>
 
-                          <div className="flex items-center justify-between text-[9px] text-zinc-600 font-bold pt-1">
-                            <span className="flex items-center gap-1"><Bot size={10} /> Author: {ver.created_by}</span>
+                          <div className="flex items-center justify-between text-xs text-muted pt-1">
+                            <span className="flex items-center gap-1"><Bot size={12} className="text-signal-blue" /> Author: {ver.created_by}</span>
                           </div>
                         </div>
                       </div>
@@ -487,9 +487,9 @@ export default function ArtifactsPage() {
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-              <FileText className="text-zinc-800 mb-4 animate-pulse" size={48} />
-              <h4 className="text-white font-bold mb-1">Select an Artifact</h4>
-              <p className="text-zinc-500 text-xs max-w-xs">Click on any artifact in the left column to view its immutable rollback timelines, edit locks, and semantic caches.</p>
+              <FileText className="text-muted/50 mb-3" size={42} />
+              <h4 className="text-primary font-bold mb-1 text-sm">Select an Artifact</h4>
+              <p className="text-muted text-xs max-w-xs">Click on any artifact in the left column to view its immutable rollback timelines, edit locks, and semantic caches.</p>
             </div>
           )}
         </div>
@@ -499,37 +499,37 @@ export default function ArtifactsPage() {
       {/* MODAL: CREATE ARTIFACT */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
-          <form onSubmit={handleCreateArtifact} className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl max-w-md w-full p-6 relative z-10 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setShowCreateModal(false)} />
+          <form onSubmit={handleCreateArtifact} className="bg-surface border border-border rounded-lg max-w-md w-full p-6 relative z-10 space-y-4 shadow-lg">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <Sparkles className="text-[#00E599]" size={16} />
-                <span className="text-xs font-black uppercase tracking-wider text-white">Create First-Class Asset</span>
+                <Sparkles className="text-signal-blue" size={16} />
+                <span className="text-sm font-bold text-primary">Create First-Class Asset</span>
               </div>
-              <button type="button" onClick={() => setShowCreateModal(false)} className="text-zinc-500 hover:text-white transition-colors">
+              <button type="button" onClick={() => setShowCreateModal(false)} className="text-muted hover:text-primary transition-colors cursor-pointer">
                 <X size={16} />
               </button>
             </div>
 
             <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Asset Title</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-secondary">Asset Title</label>
                 <input 
                   type="text" 
                   value={newArtifactName}
                   onChange={e => setNewArtifactName(e.target.value)}
                   placeholder="Competitor pricing model brief..."
-                  className="w-full bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00E599]/40 placeholder-zinc-700"
+                  className="w-full bg-surface border border-border rounded-md px-3.5 py-2 text-xs text-primary outline-none focus:border-signal-blue focus:ring-1 focus:ring-signal-blue placeholder-muted"
                   required
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Asset Format Type</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-secondary">Asset Format Type</label>
                 <select
                   value={newArtifactType}
                   onChange={e => setNewArtifactType(e.target.value as any)}
-                  className="w-full bg-[#0D0D11] border border-white/[0.06] text-xs text-white rounded-xl px-3.5 py-2.5 outline-none focus:border-[#00E599]/40"
+                  className="w-full bg-surface border border-border text-xs text-primary rounded-md px-3.5 py-2 outline-none focus:border-signal-blue cursor-pointer"
                 >
                   <option value="pdf">PDF Document</option>
                   <option value="spreadsheet">Spreadsheet Ledger</option>
@@ -541,11 +541,11 @@ export default function ArtifactsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 bg-white/[0.03] border border-white/[0.06] rounded-xl text-xs font-bold text-zinc-400 hover:text-white">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <button type="button" onClick={() => setShowCreateModal(false)} className="px-3.5 py-2 bg-surface border border-border rounded-md text-xs font-semibold text-secondary hover:text-primary cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" className="px-4 py-2 bg-[#00E599] text-black rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#00E599]/90">
+              <button type="submit" className="px-4 py-2 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover shadow-xs cursor-pointer">
                 Generate Asset
               </button>
             </div>
@@ -556,48 +556,48 @@ export default function ArtifactsPage() {
       {/* MODAL: COMMIT NEW VERSION */}
       {showVersionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowVersionModal(false)} />
-          <form onSubmit={handleCommitVersion} className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl max-w-lg w-full p-6 relative z-10 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setShowVersionModal(false)} />
+          <form onSubmit={handleCommitVersion} className="bg-surface border border-border rounded-lg max-w-lg w-full p-6 relative z-10 space-y-4 shadow-lg">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
               <div className="flex items-center gap-2">
-                <Layers className="text-[#00E599]" size={16} />
-                <span className="text-xs font-black uppercase tracking-wider text-white">Commit Asset Snapshot (v{(selectedArtifact?.latest_version || 0) + 1})</span>
+                <Layers className="text-signal-blue" size={16} />
+                <span className="text-sm font-bold text-primary">Commit Asset Snapshot (v{(selectedArtifact?.latest_version || 0) + 1})</span>
               </div>
-              <button type="button" onClick={() => setShowVersionModal(false)} className="text-zinc-500 hover:text-white transition-colors">
+              <button type="button" onClick={() => setShowVersionModal(false)} className="text-muted hover:text-primary transition-colors cursor-pointer">
                 <X size={16} />
               </button>
             </div>
 
             <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Change Description / Commit Message</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-secondary">Change Description / Commit Message</label>
                 <input 
                   type="text" 
                   value={versionDescription}
                   onChange={e => setVersionDescription(e.target.value)}
                   placeholder="Updated financial projections or edited market research outline..."
-                  className="w-full bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00E599]/40 placeholder-zinc-700"
+                  className="w-full bg-surface border border-border rounded-md px-3.5 py-2 text-xs text-primary outline-none focus:border-signal-blue focus:ring-1 focus:ring-signal-blue placeholder-muted"
                   required
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Raw Text Contents</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-secondary">Raw Text Contents</label>
                 <textarea 
                   value={versionContents}
                   onChange={e => setVersionContents(e.target.value)}
                   placeholder="Paste the full, raw text content of the artifact to version, summarize, and semantically index..."
-                  className="w-full h-44 bg-black/40 border border-white/[0.06] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00E599]/40 placeholder-zinc-700 font-mono resize-none custom-scrollbar"
+                  className="w-full h-44 bg-surface border border-border rounded-md px-3.5 py-2 text-xs text-primary outline-none focus:border-signal-blue focus:ring-1 focus:ring-signal-blue placeholder-muted font-mono resize-none custom-scrollbar"
                   required
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowVersionModal(false)} className="px-4 py-2 bg-white/[0.03] border border-white/[0.06] rounded-xl text-xs font-bold text-zinc-400 hover:text-white">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <button type="button" onClick={() => setShowVersionModal(false)} className="px-3.5 py-2 bg-surface border border-border rounded-md text-xs font-semibold text-secondary hover:text-primary cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" className="px-4 py-2 bg-[#00E599] text-black rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#00E599]/90">
+              <button type="submit" className="px-4 py-2 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover shadow-xs cursor-pointer">
                 Commit & Unlock
               </button>
             </div>

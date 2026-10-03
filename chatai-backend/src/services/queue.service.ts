@@ -94,23 +94,33 @@ class QueueService {
       )
 
       if (stuckRuns.length > 0) {
-        logger.info(`[Queue] Found ${stuckRuns.length} stuck runs to recover. Re-enqueueing...`)
-        for (const run of stuckRuns) {
-          logger.info(`[Queue] Self-healing run ${run.id} (stuck in state: ${run.status})`)
-          
-          // Re-transition run to RETRYING or EXECUTING state
-          await transitionWorkflowRun(run.id, 'RETRYING', {
-            workflowId: run.workflow_id,
-            errorMessage: 'Automatic recovery from system crash/restart'
-          })
+        // Filter out completed, cancelled, or failed runs
+        const activeStuckRuns = stuckRuns.filter(r => r && stuckStates.includes(String(r.status || '').toLowerCase()))
+        if (activeStuckRuns.length > 0) {
+          logger.info(`[Queue] Found ${activeStuckRuns.length} stuck runs to recover. Re-enqueueing...`)
+          for (const run of activeStuckRuns) {
+            try {
+              logger.info(`[Queue] Self-healing run ${run.id} (stuck in state: ${run.status})`)
+              
+              // Re-transition run to RETRYING or EXECUTING state
+              await transitionWorkflowRun(run.id, 'RETRYING', {
+                workflowId: run.workflow_id,
+                errorMessage: 'Automatic recovery from system crash/restart'
+              })
 
-          await this.enqueueWorkflowRun(
-            run.workflow_id,
-            run.tenant_id,
-            run.input_data,
-            run.id,
-            true // assume langgraph as default route
-          )
+              await this.enqueueWorkflowRun(
+                run.workflow_id,
+                run.tenant_id,
+                run.input_data,
+                run.id,
+                true // assume langgraph as default route
+              )
+            } catch (runErr: any) {
+              logger.warn(`[Queue] Could not recover run ${run.id}: ${runErr.message}`)
+            }
+          }
+        } else {
+          logger.info('[Queue] No stuck runs found. System state is clean.')
         }
       } else {
         logger.info('[Queue] No stuck runs found. System state is clean.')

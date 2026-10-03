@@ -9,8 +9,21 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs = 3000, fallback: T): Pro
   ])
 }
 
+export const OPEN_SOURCE_DEFAULT_SESSION = {
+  token: 'local-dev-open-access-token',
+  tenant: {
+    id: 'd34930ea-af1a-4094-9082-b47df3fb8075',
+    name: 'Open Workspace',
+    email: 'test_user_1@chatbolt.ai',
+    plan: 'pro',
+    credits_remaining: 10000,
+    credits_monthly: 10000,
+    is_active: true
+  }
+}
+
 async function getToken() {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') return 'local-dev-open-access-token'
   try {
     const sessionPromise = supabase.auth.getSession()
       .then(res => {
@@ -18,13 +31,19 @@ async function getToken() {
         return res.data.session.access_token
       })
       .catch(() => null)
-    const supabaseToken = await withTimeout(sessionPromise, 3000, null)
+    const supabaseToken = await withTimeout(sessionPromise, 1500, null)
     if (supabaseToken) return supabaseToken
   } catch {
     // ignore — fall through to local token
   }
-  // Fall back to locally stored token (set during local/offline login)
-  return localStorage.getItem('chatbolt_token') || null
+  // Fall back to locally stored token
+  const localToken = localStorage.getItem('chatbolt_token')
+  if (localToken) return localToken
+  
+  // Open-Source Zero Friction: Auto-seed open local session
+  localStorage.setItem('chatbolt_token', OPEN_SOURCE_DEFAULT_SESSION.token)
+  localStorage.setItem('chatai_tenant', JSON.stringify(OPEN_SOURCE_DEFAULT_SESSION.tenant))
+  return OPEN_SOURCE_DEFAULT_SESSION.token
 }
 
 async function req<T>(method: string, path: string, body?: any, raw = false): Promise<T> {
@@ -436,6 +455,157 @@ export const api = {
     get: (token: string) => req<any>('GET', `/shares/${token}`),
     create: (runId: string) => req<{ shareToken: string; expiresAt: string }>('POST', '/shares', { runId }),
   },
+  observability: {
+    listRuns: (params?: { limit?: number; status?: string; role?: string }) => {
+      let query = `limit=${params?.limit || 50}`
+      if (params?.status) query += `&status=${encodeURIComponent(params.status)}`
+      if (params?.role) query += `&role=${encodeURIComponent(params.role)}`
+      return req<{ success: boolean; runs: any[]; total: number }>('GET', `/api/observability/runs?${query}`)
+    },
+    getRun: (runId: string) => req<{ success: boolean; run: any; spans: any[]; logs: any[]; findings: any[] }>('GET', `/api/observability/runs/${runId}`),
+    listErrors: () => req<{ success: boolean; groups: any[]; total: number }>('GET', '/api/observability/errors'),
+    getError: (signature: string) => req<{ success: boolean; group: any; occurrences: any[]; affectedRuns: any[] }>('GET', `/api/observability/errors/${signature}`),
+    listFindings: (limit = 100) => req<{ success: boolean; findings: any[]; total: number }>('GET', `/api/observability/findings?limit=${limit}`),
+    getConfig: () => req<{ success: boolean; config: any }>('GET', '/api/observability/config'),
+    updateConfig: (data: any) => req<{ success: boolean; config: any }>('POST', '/api/observability/config', data),
+  },
+  personalAgent: {
+    getProfile: () => req<{ success: boolean; agent?: any; profile?: any; memoriesCount: number }>('GET', '/api/personal-agent'),
+    updateProfile: (data: { name?: string; preferredModel?: string; persona?: any; onboardingCompleted?: boolean; onboardingAnswers?: any }) =>
+      req<{ success: boolean; agent?: any; profile?: any }>('PATCH', '/api/personal-agent', data),
+    completeOnboarding: (data: {
+      name: string
+      userRole: string
+      primaryGoals: string[]
+      preferredTone?: string
+      initialNote?: string
+      connectedIntegrations?: string[]
+    }) => req<{ success: boolean; agent?: any; profile?: any; message: string }>('POST', '/api/personal-agent/onboarding', data),
+    getMessages: (limit = 50) =>
+      req<{ success: boolean; messages: any[]; total: number }>('GET', `/api/personal-agent/messages?limit=${limit}`),
+    chat: (message: string) =>
+      req<{
+        success: boolean
+        message?: any
+        assistantMessage?: any
+        userMessage?: any
+        delegatedSpecialists?: string[]
+        delegatedTask?: { taskId: string; role: string; output: string }
+        learnedMemories?: any[]
+      }>('POST', '/api/personal-agent/chat', { message }),
+    getMemories: () =>
+      req<{ success: boolean; memories: any[]; total: number }>('GET', '/api/personal-agent/memories'),
+    addMemory: (data: { key: string; value: string; category?: string; importance?: number }) =>
+      req<{ success: boolean; memory: any }>('POST', '/api/personal-agent/memories', data),
+    updateMemory: (id: string, data: { value?: string; key?: string; category?: string }) =>
+      req<{ success: boolean; memory: any }>('PATCH', `/api/personal-agent/memories/${id}`, data),
+    deleteMemory: (id: string) =>
+      req<{ success: boolean }>('DELETE', `/api/personal-agent/memories/${id}`),
+    
+    // Pluggable Sovereign Storage & Transparency APIs
+    getStorageOverview: () =>
+      req<{
+        success: boolean
+        activeConfig: any
+        metrics: any
+        availableBackends: any[]
+        guaranteesAndDisclosures: {
+          guarantees: string[]
+          nonGuarantees: string[]
+          thirdPartyInferenceNote: string
+          threatModelSummary: string
+        }
+      }>('GET', '/api/personal-agent/storage'),
+    configureStorage: (data: { config: any; migrateExistingData?: boolean }) =>
+      req<{ success: boolean; config: any; migratedRecords?: number }>('POST', '/api/personal-agent/storage/configure', data),
+    testStorageConnection: (config: any) =>
+      req<{ ok: boolean; latencyMs: number; backendType: string; error?: string; details?: any }>('POST', '/api/personal-agent/storage/test', config),
+    setPassphrase: (passphrase: string) =>
+      req<{ success: boolean; saltHex: string; verifierHex: string }>('POST', '/api/personal-agent/storage/passphrase', { passphrase }),
+    unlockPassphrase: (passphrase: string) =>
+      req<{ success: boolean; unlocked: boolean }>('POST', '/api/personal-agent/storage/unlock', { passphrase }),
+    exportDataUrl: () => `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/personal-agent/storage/export`,
+    permanentDelete: (confirmText: string) =>
+      req<{
+        success: boolean
+        deletedMemories: number
+        deletedMessages: number
+        deletedProfile: boolean
+        verificationReceipt: any
+      }>('POST', '/api/personal-agent/storage/permanent-delete', { confirm: confirmText }),
+
+    // Always-On Background Scheduling, Triggers, Approvals & Executive Digest
+    getDigest: (timeframe = '24h') =>
+      req<{ success: boolean; digest: any }>('GET', `/api/personal-agent/background/digest?timeframe=${timeframe}`),
+    listTriggers: () =>
+      req<{ success: boolean; triggers: any[] }>('GET', '/api/personal-agent/background/triggers'),
+    createTrigger: (data: any) =>
+      req<{ success: boolean; trigger: any }>('POST', '/api/personal-agent/background/triggers', data),
+    toggleTriggerStatus: (id: string, status: 'active' | 'paused') =>
+      req<{ success: boolean; trigger: any }>('PATCH', `/api/personal-agent/background/triggers/${id}/status`, { status }),
+    deleteTrigger: (id: string) =>
+      req<{ success: boolean }>('DELETE', `/api/personal-agent/background/triggers/${id}`),
+    runTriggerNow: (id: string) =>
+      req<{ success: boolean; run: any }>('POST', `/api/personal-agent/background/triggers/${id}/run`),
+    approvePendingAction: (id: string, rationale?: string) =>
+      req<{ success: boolean; approval: any; run: any }>('POST', `/api/personal-agent/background/approvals/${id}/approve`, { rationale }),
+    rejectPendingAction: (id: string, rationale?: string) =>
+      req<{ success: boolean; approval: any; run: any }>('POST', `/api/personal-agent/background/approvals/${id}/reject`, { rationale }),
+    simulateEvent: (data: { source: string; eventType: string; payload?: any }) =>
+      req<{ success: boolean; triggeredRuns: any[]; matchedCount: number }>('POST', '/api/personal-agent/background/simulate-event', data),
+    simulateMultiDay: (days = 3) =>
+      req<{ success: boolean; daysSimulated: number; totalRunsGenerated: number; summary: string }>('POST', '/api/personal-agent/background/simulate-multiday', { days }),
+
+    // Inspectable Decision-Pattern Learning & Autonomy Gating (Prompt 30)
+    getDecisionPatterns: (domain?: string) =>
+      req<{ success: boolean; patterns: any[]; learningStats: any }>('GET', `/api/personal-agent/decision-patterns${domain ? `?domain=${domain}` : ''}`),
+    getDecisionPatternEvidence: (patternId: string) =>
+      req<{ success: boolean; pattern: any; evidenceLog: any[] }>('GET', `/api/personal-agent/decision-patterns/${patternId}/evidence`),
+    recordDecisionSignal: (data: any) =>
+      req<{ success: boolean; pattern: any; gateStatus: string }>('POST', '/api/personal-agent/decision-patterns/signals', data),
+    evaluateDecisionGate: (data: { domain: string; actionType: string; stakesLevel: 'low' | 'medium' | 'high'; userConfiguredThreshold?: number }) =>
+      req<{ success: boolean; gate: any }>('POST', '/api/personal-agent/decision-patterns/gate', data),
+    getStructuredDecisionContext: (domain?: string) =>
+      req<{ success: boolean; xmlContext: string }>('GET', `/api/personal-agent/decision-patterns/context${domain ? `?domain=${domain}` : ''}`),
+    updateDecisionPattern: (id: string, data: { userEditedRule?: string; userSetConfidence?: number; isPinned?: boolean; title?: string }) =>
+      req<{ success: boolean; pattern: any }>('PATCH', `/api/personal-agent/decision-patterns/${id}`, data),
+    deleteDecisionPattern: (id: string) =>
+      req<{ success: boolean }>('DELETE', `/api/personal-agent/decision-patterns/${id}`),
+
+    // Crucial-Moment Detection & Proactive Advice (Prompt 31)
+    getCrucialSettings: () =>
+      req<{ success: boolean; settings: any }>('GET', '/api/personal-agent/crucial/settings'),
+    updateCrucialSettings: (data: any) =>
+      req<{ success: boolean; settings: any }>('PATCH', '/api/personal-agent/crucial/settings', data),
+    evaluateCrucialMoment: (data: { actionType: string; domain?: string; proposedPayload?: any; contextDescription?: string }) =>
+      req<{ success: boolean; evaluation: any }>('POST', '/api/personal-agent/crucial/evaluate', data),
+    flagMistake: (data: { actionType: string; domain: string; rationale: string }) =>
+      req<{ success: boolean }>('POST', '/api/personal-agent/crucial/mistakes', data),
+    getProactiveAdvice: () =>
+      req<{ success: boolean; advice: any[] }>('GET', '/api/personal-agent/advice'),
+    generateProactiveAdvice: (options?: any) =>
+      req<{ success: boolean; advice: any[] }>('POST', '/api/personal-agent/advice/generate', options || {}),
+    submitAdviceFeedback: (id: string, feedback: 'helpful' | 'unhelpful' | 'dismissed') =>
+      req<{ success: boolean; advice: any }>('POST', `/api/personal-agent/advice/${id}/feedback`, { feedback }),
+
+    // Voice Capabilities & Tunability (Prompt 32)
+    getVoiceSettings: () =>
+      req<{ success: boolean; settings: any }>('GET', '/api/personal-agent/voice/settings'),
+    updateVoiceSettings: (data: any) =>
+      req<{ success: boolean; settings: any }>('PATCH', '/api/personal-agent/voice/settings', data),
+    transcribeVoice: (data: { durationSeconds?: number; mimeType?: string }) =>
+      req<{ success: boolean; result: any }>('POST', '/api/personal-agent/voice/transcribe', data),
+    synthesizeSpeech: (text: string, voice?: string) =>
+      req<{ success: boolean; result: any }>('POST', '/api/personal-agent/voice/synthesize', { text, voice }),
+    getVoiceUsage: () =>
+      req<{ success: boolean; usage: any }>('GET', '/api/personal-agent/voice/usage'),
+  },
+
+  // Generic REST helpers
+  get: <T = any>(path: string) => req<T>('GET', path),
+  post: <T = any>(path: string, body?: any) => req<T>('POST', path, body),
+  patch: <T = any>(path: string, body?: any) => req<T>('PATCH', path, body),
+  delete: <T = any>(path: string) => req<T>('DELETE', path),
 }
 
 export async function logout() {
@@ -475,8 +645,12 @@ export async function getSession() {
       const tenant = JSON.parse(tenantStr)
       return { token: localToken, tenant }
     } catch {
-      return null
+      // ignore
     }
   }
-  return null
+
+  // Open-Source Zero Friction: Auto-seed and return open workspace session
+  localStorage.setItem('chatbolt_token', OPEN_SOURCE_DEFAULT_SESSION.token)
+  localStorage.setItem('chatai_tenant', JSON.stringify(OPEN_SOURCE_DEFAULT_SESSION.tenant))
+  return OPEN_SOURCE_DEFAULT_SESSION
 }

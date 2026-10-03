@@ -2,95 +2,212 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <title>Chatbolt Companion</title>
   <style>
-    body {
-      width: 220px;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #050507;
-      color: #ededed;
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
     }
-    h3 {
-      margin-top: 0;
-      color: #ffffff;
-      font-size: 14px;
+    body {
+      width: 360px;
+      min-height: 480px;
+      max-height: 560px;
+      background-color: #09090b;
+      color: #ededed;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      padding: 12px 16px;
+      background: #121216;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      justify-content: space-between;
     }
-    .status-container {
+    .brand {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
-      margin-bottom: 12px;
     }
-    .dot {
-      width: 8px;
-      height: 8px;
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .assistant-info h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill {
+      font-size: 10px;
+      color: #10b981;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background-color: #ef4444;
+      background-color: #10b981;
+      box-shadow: 0 0 6px #10b981;
     }
-    .dot.connected {
-      background-color: #22c55e;
-      box-shadow: 0 0 8px #22c55e;
+    .free-badge {
+      font-size: 9px;
+      text-transform: uppercase;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
-    .status-text {
-      font-weight: bold;
+    .quick-actions {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
     }
-    .info {
-      font-size: 11px;
-      color: #a1a1aa;
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #d1d5db;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+      color: #fff;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 280px;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
       line-height: 1.4;
+      word-break: break-word;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #4f46e5;
+      color: #fff;
+      border-bottom-right-radius: 2px;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: #18181b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #e4e4e7;
+      border-bottom-left-radius: 2px;
+    }
+    .msg .meta {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .input-bar {
+      padding: 10px 12px;
+      background: #121216;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      gap: 8px;
+    }
+    .input-bar input {
+      flex: 1;
+      background: #1c1c21;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+    }
+    .input-bar input:focus {
+      border-color: #6366f1;
+    }
+    .send-btn {
+      background: #6366f1;
+      border: none;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
-  <h3>⚡ Chatbolt Browser</h3>
-  <div class="status-container">
-    <div id="status-dot" class="dot"></div>
-    <span id="status-text" class="status-text">Disconnected</span>
+  <header>
+    <div class="brand">
+      <div class="avatar">✨</div>
+      <div class="assistant-info">
+        <h3 id="agent-name">Aria</h3>
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span>Companion Active</span>
+        </div>
+      </div>
+    </div>
+    <span class="free-badge">BYOK Free</span>
+  </header>
+
+  <div class="quick-actions">
+    <button class="action-btn" id="btn-summarize">📄 Summarize Page</button>
+    <button class="action-btn" id="btn-tasks">✅ Extract Tasks</button>
+    <button class="action-btn" id="btn-explain">💡 Explain Page</button>
   </div>
-  <div class="info">
-    Runs tasks securely on your own browser with your logged-in sessions. Keep this extension active during web operations.
+
+  <div class="chat-messages" id="messages-container">
+    <div class="msg assistant">
+      <div>Hi! I'm your continuous personal assistant. Ask me anything, or summarize this browser tab in 1 click.</div>
+      <div class="meta">Aria • Just now</div>
+    </div>
   </div>
-  <script>
-    function updateStatus() {
-      chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (res) => {
-        if (res) {
-          const dot = document.getElementById('status-dot');
-          const text = document.getElementById('status-text');
-          if (res.connected) {
-            dot.className = 'dot connected';
-            text.innerText = 'Connected';
-            text.style.color = '#22c55e';
-          } else {
-            dot.className = 'dot';
-            text.innerText = 'Disconnected';
-            text.style.color = '#ef4444';
-          }
-        }
-      });
-    }
-    updateStatus();
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message.type === 'STATUS_UPDATE') {
-        const dot = document.getElementById('status-dot');
-        const text = document.getElementById('status-text');      // its an basic popup in browser for more control and credibility and ease for users 
-        if (message.connected) {
-          dot.className = 'dot connected';
-          text.innerText = 'Connected';
-          text.style.color = '#22c55e';
-        } else {
-          dot.className = 'dot';
-          text.innerText = 'Disconnected';
-          text.style.color = '#ef4444';
-        }
-      }
-    });
-  </script>  
+
+  <div class="input-bar">
+    <input type="text" id="chat-input" placeholder="Ask your assistant anything..." />
+    <button class="send-btn" id="send-btn">Send</button>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

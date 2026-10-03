@@ -7,8 +7,8 @@ import SessionListener from '@/components/SessionListener'
 import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
-  title: 'Chatbolt — Customer Support Platform',
-  description: 'Build and deploy support assistants trained on your business data. Handle customer queries automatically, 24/7. Trusted by 10,000+ businesses.',
+  title: 'Chatbolt — Autonomous AI Workforce Platform',
+  description: 'Enterprise runtime for orchestrating, supervising, and budgeting autonomous AI agent teams.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             dangerouslySetInnerHTML={{
               __html: `
                 (function(w,d,s,l,i){
-                  // Initializing tracking placeholder with ID
                   w[l] = w[l] || [];
                   w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
                 })(window,document,'script','dataLayer','${analyticsId}');
@@ -35,10 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         )}
       </head>
-      <body className="antialiased bg-[#F9F9F9] text-[#1A1A1A] min-h-screen flex flex-col">
+      <body className="antialiased bg-background text-primary min-h-screen font-sans">
         <SessionListener />
         <ToastProvider>
-          <main className="flex-1">{children}</main>
+          {children}
         </ToastProvider>
         <Footer />
       </body>

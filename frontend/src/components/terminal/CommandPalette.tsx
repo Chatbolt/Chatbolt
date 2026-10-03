@@ -37,15 +37,11 @@ export default function CommandPalette({
   const containerRef = useFocusTrap(isOpen) as React.MutableRefObject<HTMLDivElement | null>
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch integrations and history runs
   useEffect(() => {
     if (!isOpen) return
     
-    // Reset query & index
     setQuery('')
     setSelectedIndex(0)
-
-    // Focus input
     setTimeout(() => inputRef.current?.focus(), 100)
 
     const fetchData = async () => {
@@ -59,143 +55,145 @@ export default function CommandPalette({
         const runRes = await api.workflows.listRuns({ limit: 5 }).catch(() => ({ runs: [] }))
         setRecentRuns(runRes.runs || [])
       } catch (err) {
-        console.warn('[Command Palette] Failed to load metadata:', err)
+        console.warn('Failed to pre-fetch commands data:', err)
       }
     }
-
     fetchData()
   }, [isOpen])
 
-  // Quick actions list
-  const actions: PaletteItem[] = useMemo(() => [
-    {
-      id: 'action-new',
-      label: 'New task',
-      category: 'Actions',
-      icon: <Terminal size={14} className="text-[var(--color-accent)]" />,
-      action: () => {
-        onSelectShortcut('', false)
-        onClose()
+  const defaultItems: PaletteItem[] = useMemo(() => {
+    const list: PaletteItem[] = [
+      {
+        id: 'new-task',
+        label: 'Start new task',
+        category: 'Actions',
+        icon: <Terminal size={14} className="text-primary" />,
+        action: () => {
+          onClose()
+          setTimeout(() => document.getElementById('terminal-input')?.focus(), 50)
+        }
+      },
+      {
+        id: 'view-history',
+        label: 'View execution history',
+        category: 'Actions',
+        icon: <Clock size={14} className="text-secondary" />,
+        action: () => {
+          onClose()
+          onOpenHistory()
+        }
+      },
+      {
+        id: 'view-security',
+        label: 'Manage integrations & permissions',
+        category: 'Actions',
+        icon: <Shield size={14} className="text-secondary" />,
+        action: () => {
+          onClose()
+          router.push('/dashboard/plugins')
+        }
       }
-    },
-    {
-      id: 'action-integrations',
-      label: 'Open plugins',
-      category: 'Actions',
-      icon: <Compass size={14} className="text-blue-400" />,
-      action: () => {
-        router.push('/dashboard/plugins')
-        onClose()
-      }
-    },
-    {
-      id: 'action-memory',
-      label: 'View memory',
-      category: 'Actions',
-      icon: <Shield size={14} className="text-purple-400" />,
-      action: () => {
-        router.push('/dashboard/memory')
-        onClose()
-      }
-    },
-    {
-      id: 'action-history',
-      label: 'View history',
-      category: 'Actions',
-      icon: <Clock size={14} className="text-zinc-400" />,
-      action: () => {
-        onOpenHistory()
-        onClose()
-      }
-    }
-  ], [router, onSelectShortcut, onOpenHistory, onClose])
+    ]
 
-  // Integration shortcuts
-  const shortcuts: PaletteItem[] = useMemo(() => {
-    const list: PaletteItem[] = []
-    
+    // Service based shortcuts
     if (connectedServices.includes('gmail')) {
       list.push({
-        id: 'shortcut-gmail',
-        label: 'Check Gmail',
+        id: 'quick-unread-emails',
+        label: 'Check unread emails',
         category: 'Quick access',
-        icon: <span>✉️</span>,
-        prompt: 'What emails do I need to reply to today?',
+        icon: <span className="text-xs">✉️</span>,
+        prompt: 'Check my latest unread emails and draft replies for priority messages',
         autoSubmit: true
       })
     }
-    
+    if (connectedServices.includes('google-calendar') || connectedServices.includes('calendar')) {
+      list.push({
+        id: 'quick-calendar-prep',
+        label: 'Prepare for tomorrow\'s meetings',
+        category: 'Quick access',
+        icon: <span className="text-xs">📅</span>,
+        prompt: 'Look at my calendar events for tomorrow and prepare a meeting prep summary',
+        autoSubmit: true
+      })
+    }
     if (connectedServices.includes('slack')) {
       list.push({
-        id: 'shortcut-slack',
-        label: 'Post to Slack',
+        id: 'quick-slack-summary',
+        label: 'Summarize Slack channels',
         category: 'Quick access',
-        icon: <span>💬</span>,
-        prompt: 'Post a status update in #general saying that I am working on completion sprint.',
-        autoSubmit: false
-      })
-    }
-
-    if (connectedServices.includes('google-calendar') || connectedServices.includes('google_calendar')) {
-      list.push({
-        id: 'shortcut-calendar',
-        label: 'Check calendar today',
-        category: 'Quick access',
-        icon: <span>📅</span>,
-        prompt: 'What is on my calendar for today?',
+        icon: <span className="text-xs">💬</span>,
+        prompt: 'Scan recent messages in my priority Slack channels and list action items',
         autoSubmit: true
       })
     }
 
-    return list
-  }, [connectedServices])
-
-  // Recent tasks items
-  const recentItems: PaletteItem[] = useMemo(() => {
-    return recentRuns.map((run, idx) => ({
-      id: `recent-${run.id}-${idx}`,
-      label: run.prompt || run.workflow_name || 'Autonomous Task',
-      category: 'Recent',
-      icon: <Clock size={14} className="text-zinc-600" />,
-      prompt: run.prompt || '',
-      autoSubmit: false
-    }))
-  }, [recentRuns])
-
-  // Filter items based on search query
-  const filteredItems = useMemo(() => {
-    const all = [...actions, ...shortcuts, ...recentItems]
-    if (!query) return all
-    return all.filter(item => 
-      item.label.toLowerCase().includes(query.toLowerCase()) || 
-      item.category.toLowerCase().includes(query.toLowerCase())
+    // Default suggestions
+    list.push(
+      {
+        id: 'quick-competitor-research',
+        label: 'Research competitors',
+        category: 'Quick access',
+        icon: <span className="text-xs">🔍</span>,
+        prompt: 'Research top 5 competitors to [my product] and create a comparison table',
+        autoSubmit: false
+      },
+      {
+        id: 'quick-weekly-brief',
+        label: 'Build project brief',
+        category: 'Quick access',
+        icon: <span className="text-xs">📄</span>,
+        prompt: 'Create a one-page project brief for [project description]',
+        autoSubmit: false
+      }
     )
-  }, [actions, shortcuts, recentItems, query])
 
-  // Adjust selection index bounds when filtering
+    // Recent runs
+    recentRuns.forEach(r => {
+      if (r.prompt) {
+        list.push({
+          id: `recent-${r.id}`,
+          label: r.prompt,
+          category: 'Recent',
+          icon: <Clock size={13} className="text-muted" />,
+          prompt: r.prompt,
+          autoSubmit: true
+        })
+      }
+    })
+
+    return list
+  }, [connectedServices, recentRuns, router, onClose, onOpenHistory])
+
+  const filteredItems = useMemo(() => {
+    if (!query.trim()) return defaultItems
+    const q = query.toLowerCase()
+    return defaultItems.filter(item => 
+      item.label.toLowerCase().includes(q) || 
+      item.category.toLowerCase().includes(q) ||
+      (item.prompt && item.prompt.toLowerCase().includes(q))
+    )
+  }, [defaultItems, query])
+
   useEffect(() => {
     setSelectedIndex(0)
   }, [query])
 
-  // Keyboard controls
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return
+    if (!isOpen) return
 
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setSelectedIndex(prev => (prev + 1) % Math.max(1, filteredItems.length))
+        setSelectedIndex(prev => (prev < filteredItems.length - 1 ? prev + 1 : 0))
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setSelectedIndex(prev => (prev - 1 + filteredItems.length) % Math.max(1, filteredItems.length))
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : filteredItems.length - 1))
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        const selectedItem = filteredItems[selectedIndex]
-        if (selectedItem) {
-          handleSelect(selectedItem)
+        if (filteredItems[selectedIndex]) {
+          handleSelect(filteredItems[selectedIndex])
         }
       } else if (e.key === 'Escape') {
-        e.preventDefault()
         onClose()
       }
     }
@@ -213,7 +211,6 @@ export default function CommandPalette({
     }
   }
 
-  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -229,44 +226,43 @@ export default function CommandPalette({
   if (!isOpen) return null
 
   return (
-    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
       <div 
         ref={containerRef}
-        className="w-full max-w-[560px] min-h-[400px] max-h-[80vh] bg-[var(--color-surface)] border border-zinc-800 rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="w-full max-w-[560px] min-h-[380px] max-h-[80vh] bg-surface border border-border rounded-xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
       >
         {/* Search header */}
-        <div className="flex items-center gap-3 border-b border-zinc-800 px-4">
-          <Search size={18} className="text-zinc-500 shrink-0" />
+        <div className="flex items-center gap-3 border-b border-border px-4 bg-subtle/50">
+          <Search size={16} className="text-secondary shrink-0" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Type a command or query..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent py-4 text-sm text-white focus:outline-none placeholder-zinc-500 font-medium"
+            className="w-full bg-transparent py-3.5 text-xs text-primary focus:outline-none placeholder:text-muted/60 font-medium"
           />
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 font-bold uppercase tracking-wider">ESC</span>
+            <span className="text-[10px] text-secondary bg-secondary border border-border rounded px-1.5 py-0.5 font-semibold uppercase tracking-wider">ESC</span>
           </div>
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
           {filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-60 text-zinc-500 gap-2">
-              <Compass size={24} className="text-zinc-600" />
+            <div className="flex flex-col items-center justify-center h-60 text-secondary gap-2">
+              <Compass size={24} className="text-muted" />
               <p className="text-xs font-semibold">No results found</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Group items by category */}
               {['Actions', 'Quick access', 'Recent'].map(cat => {
                 const catItems = filteredItems.filter(item => item.category === cat)
                 if (catItems.length === 0) return null
 
                 return (
                   <div key={cat} className="space-y-1">
-                    <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-3 py-1.5">
+                    <h4 className="text-[10px] font-semibold text-muted uppercase tracking-wider px-3 py-1.5">
                       {cat}
                     </h4>
                     {catItems.map((item) => {
@@ -278,22 +274,22 @@ export default function CommandPalette({
                           key={item.id}
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(absoluteIndex)}
-                          className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium cursor-pointer transition-all duration-150
+                          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-150
                             ${isSelected 
-                              ? 'bg-zinc-900 border border-zinc-800 text-white shadow-md' 
-                              : 'border border-transparent text-zinc-400 hover:text-zinc-200'
+                              ? 'bg-secondary text-primary shadow-xs' 
+                              : 'text-secondary hover:text-primary hover:bg-subtle'
                             }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="shrink-0 flex items-center justify-center w-5 h-5 rounded bg-zinc-950/50">
+                            <div className="shrink-0 flex items-center justify-center w-5 h-5 rounded bg-surface border border-border">
                               {item.icon}
                             </div>
                             <span className="truncate pr-4">{item.label}</span>
                           </div>
                           {isSelected && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-[10px] text-[var(--color-accent)] font-bold uppercase tracking-wide">Select</span>
-                              <Check size={12} className="text-[var(--color-accent)]" />
+                            <div className="flex items-center gap-1 shrink-0 text-sky-700">
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">Select</span>
+                              <Check size={12} />
                             </div>
                           )}
                         </div>
@@ -307,14 +303,12 @@ export default function CommandPalette({
         </div>
 
         {/* Footer info */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800/60 bg-zinc-950/40 text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-subtle/50 text-[11px] text-secondary font-medium">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <Keyboard size={10} /> Arrow Keys to navigate
+              <Keyboard size={12} /> Arrow keys to navigate
             </span>
-            <span className="flex items-center gap-1">
-              ↵ Enter to select
-            </span>
+            <span>↵ Enter to select</span>
           </div>
           <span>Chatbolt Commands</span>
         </div>

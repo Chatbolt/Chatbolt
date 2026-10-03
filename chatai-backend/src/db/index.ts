@@ -213,7 +213,7 @@ function emulateQuery(sql: string, params: any[] = []): any[] {
           const valTokens = splitSqlTokens(valStr)
           
           columns.forEach((col, idx) => {
-            const valToken = valTokens[idx] || ''
+            const valToken = (valTokens[idx] || '').trim()
             if (valToken.startsWith('$')) {
               const paramIdx = parseInt(valToken.substring(1)) - 1
               newRow[col] = params[paramIdx]
@@ -221,13 +221,13 @@ function emulateQuery(sql: string, params: any[] = []): any[] {
               newRow[col] = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()
             } else if (valToken.toUpperCase().includes('NOW()')) {
               newRow[col] = new Date().toISOString()
-            } else if (valToken === 'true') {
+            } else if (valToken.toLowerCase() === 'true') {
               newRow[col] = true
-            } else if (valToken === 'false') {
+            } else if (valToken.toLowerCase() === 'false') {
               newRow[col] = false
             } else {
               const unquoted = valToken.replace(/^['"]|['"]$/g, '')
-              newRow[col] = params[idx] !== undefined ? params[idx] : unquoted
+              newRow[col] = unquoted
             }
           })
         }
@@ -316,6 +316,33 @@ function emulateQuery(sql: string, params: any[] = []): any[] {
             const field = likeMatch[1].trim().toLowerCase()
             const rawPattern = likeMatch[2].replace(/%/g, '').toLowerCase()
             rows = rows.filter(r => String(r[field] || '').toLowerCase().includes(rawPattern))
+            return
+          }
+
+          const anyMatch = cond.match(/(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)\s*=\s*ANY\s*\(\s*\$(\d+)\s*\)/i)
+          if (anyMatch) {
+            const field = anyMatch[1].trim().toLowerCase()
+            const paramIdx = parseInt(anyMatch[2]) - 1
+            const arrayVal = params[paramIdx]
+            if (Array.isArray(arrayVal)) {
+              const lowerArr = arrayVal.map(x => String(x).toLowerCase())
+              rows = rows.filter(r => r[field] && lowerArr.includes(String(r[field]).toLowerCase()))
+            }
+            return
+          }
+
+          const inMatch = cond.match(/(?:[a-zA-Z_]\w*\.)?([a-zA-Z_]\w*)\s+IN\s*\(([^)]+)\)/i)
+          if (inMatch) {
+            const field = inMatch[1].trim().toLowerCase()
+            const rawTokens = inMatch[2].split(',').map(s => s.trim())
+            const allowedValues = rawTokens.map(tok => {
+              if (tok.startsWith('$')) {
+                const pIdx = parseInt(tok.substring(1)) - 1
+                return String(params[pIdx] || '').toLowerCase()
+              }
+              return tok.replace(/['"]/g, '').toLowerCase()
+            })
+            rows = rows.filter(r => r[field] && allowedValues.includes(String(r[field]).toLowerCase()))
             return
           }
 

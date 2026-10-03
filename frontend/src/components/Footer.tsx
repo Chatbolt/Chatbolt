@@ -1,6 +1,7 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Linkedin, Twitter, Youtube, Instagram, Globe, ChevronDown } from 'lucide-react'
 
 // Custom TikTok Icon since it might not be in older lucide-react versions
@@ -21,6 +22,21 @@ const TikTokIcon = ({ size = 20, className = "" }) => (
 )
 
 export default function Footer() {
+  const pathname = usePathname()
+
+  // Hide marketing footer on all dashboard, app, and auth pages
+  if (
+    pathname?.startsWith('/dashboard') ||
+    pathname?.startsWith('/app') ||
+    pathname?.startsWith('/onboarding') ||
+    pathname?.startsWith('/login') ||
+    pathname?.startsWith('/signup') ||
+    pathname?.startsWith('/design-system') ||
+    pathname?.startsWith('/palette-comparison')
+  ) {
+    return null
+  }
+
   return (
     <footer className="w-full bg-[#161616] text-white pt-24 pb-8 px-6 font-sans">
       <div className="max-w-7xl mx-auto">

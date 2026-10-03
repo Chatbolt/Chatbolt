@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!--
+    Chatbolt Logo Mark — Primary (Dark on Light)
+    Concept: "Three Pillars" — the tri-tier architecture (Node.js · Go · Python)
+    unified by a single baseline. Reads as: structure, hierarchy, stability, control.
+    
+    Design rationale:
+    - Three vertical bars of identical width (10px each), precisely spaced
+    - Heights: 20px / 28px / 20px — the taller center pillar represents the
+      orchestrating gateway that governs the left (Go runtime) and right (Python brain)
+    - All bars vertically bottom-aligned to a shared 2px baseline bar
+    - The total mark footprint is a perfect square proportion
+    - No rounded corners — architectural, not consumer
+    - Works at 16px favicon, 32px, 48px, 96px, and large sizes equally
+    - Single color — no dependency on gradients to read correctly
+  -->
+
+  <!-- Left column — shorter (represents one service tier) -->
+  <rect x="6" y="18" width="10" height="20" fill="#0F172A"/>
+
+  <!-- Center column — tallest (orchestrator / gateway) -->
+  <rect x="19" y="10" width="10" height="28" fill="#0F172A"/>
+
+  <!-- Right column — shorter (represents one service tier) -->
+  <rect x="32" y="18" width="10" height="20" fill="#0F172A"/>
+
+  <!-- Baseline — unifying ground rule that anchors all three pillars -->
+  <rect x="6" y="40" width="36" height="2" fill="#0F172A"/>
+</svg>

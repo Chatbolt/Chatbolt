@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Bot, User, AlertTriangle } from 'lucide-react'
+import { Bot, User, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import ExecutionCard from './ExecutionCard'
 import PermissionCard from './PermissionCard'
 import UpgradePrompt from './UpgradePrompt'
@@ -38,15 +38,15 @@ function formatMarkdown(text: string): string {
   if (!text) return ''
   return text
     // Code blocks
-    .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre class="code-block font-mono text-[10.5px] bg-black/60 border border-white/[0.04] p-3.5 rounded-xl my-2 whitespace-pre-wrap"><code>$2</code></pre>')
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre class="code-block font-mono text-[11px] bg-secondary border border-border text-primary p-3.5 rounded-lg my-2 whitespace-pre-wrap"><code>$2</code></pre>')
     // Inline code
-    .replace(/`([^`]+)`/g, '<code class="bg-white/5 border border-white/[0.06] rounded px-1.5 py-0.5 font-mono text-[10.5px]">$1</code>')
+    .replace(/`([^`]+)`/g, '<code class="bg-secondary border border-border rounded px-1.5 py-0.5 font-mono text-[11px] text-primary">$1</code>')
     // Bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-primary">$1</strong>')
     // Italic
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\*(.+?)\*/g, '<em class="italic text-primary">$1</em>')
     // Bullet lists
-    .replace(/^[-*] (.+)$/gm, '<li class="ml-4 list-disc text-zinc-300">$1</li>')
+    .replace(/^[-*] (.+)$/gm, '<li class="ml-4 list-disc text-primary">$1</li>')
 }
 
 // Inline config form for missing parameters
@@ -67,34 +67,34 @@ function InlineCalibrationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3.5 mt-2 bg-[var(--color-surface)]/40 border border-white/[0.05] p-4.5 rounded-2xl">
+    <form onSubmit={handleSubmit} className="space-y-3.5 mt-2 bg-surface border border-border p-4.5 rounded-xl shadow-xs">
       <div className="space-y-0.5">
-        <h5 className="text-[10px] font-black uppercase tracking-widest text-[var(--color-accent)]">
+        <h5 className="text-xs font-semibold text-primary">
           {TERMINAL_STRINGS.needsInputsTitle}
         </h5>
-        <p className="text-[10px] text-zinc-400 font-medium">
+        <p className="text-xs text-secondary">
           {TERMINAL_STRINGS.needsInputsSubtitle}
         </p>
       </div>
 
       {fields.map(f => (
         <div key={f.field} className="space-y-1">
-          <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block">
-            {f.question} {f.required && <span className="text-red-400">*</span>}
+          <label className="text-[11px] font-semibold text-secondary uppercase tracking-wider block">
+            {f.question} {f.required && <span className="text-rose-600">*</span>}
           </label>
           <input
             type={f.type === 'number' ? 'number' : 'text'}
             placeholder={`Enter ${f.field}...`}
             value={values[f.field] || ''}
             onChange={(e) => setValues(prev => ({ ...prev, [f.field]: e.target.value }))}
-            className="w-full bg-black/50 border border-white/[0.06] rounded-xl px-3 py-2 text-[13px] text-zinc-200 outline-none focus:border-[var(--color-accent)]/40 transition-colors"
+            className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs text-primary placeholder:text-muted/60 outline-none focus:border-border-strong shadow-xs transition-colors"
             required={f.required}
           />
         </div>
       ))}
       <button
         type="submit"
-        className="w-full py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90 text-white font-black rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer"
+        className="w-full py-2 bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-semibold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
       >
         Confirm Parameters
       </button>
@@ -102,7 +102,7 @@ function InlineCalibrationForm({
   )
 }
 
-// Sub-component for cancel confirmation to allow dedicated focus trapping
+// Sub-component for cancel confirmation
 function CancelConfirmationCard({
   runId,
   idx,
@@ -117,12 +117,12 @@ function CancelConfirmationCard({
   const containerRef = useFocusTrap(true) as React.MutableRefObject<HTMLDivElement | null>
 
   return (
-    <div ref={containerRef} className="w-full min-w-[280px] md:min-w-[420px] bg-zinc-950/80 border border-red-500/20 p-4.5 rounded-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+    <div ref={containerRef} className="w-full min-w-[280px] md:min-w-[420px] bg-surface border border-rose-200 p-4.5 rounded-xl flex flex-col gap-3 shadow-xs">
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Cancel Task Confirmation</span>
+        <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
+        <span className="text-xs font-semibold text-rose-700">Cancel Task Confirmation</span>
       </div>
-      <p className="text-[13px] text-zinc-300 font-medium">
+      <p className="text-xs text-secondary">
         Are you sure you want to cancel the currently running process?
       </p>
       <div className="flex items-center gap-2.5 mt-1">
@@ -133,7 +133,7 @@ function CancelConfirmationCard({
               onDismissCancel(idx)
             }
           }}
-          className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all cursor-pointer border border-zinc-800"
+          className="flex-1 py-1.5 bg-secondary hover:bg-subtle text-primary font-medium rounded-lg text-xs transition-all cursor-pointer border border-border"
         >
           Keep going
         </button>
@@ -142,7 +142,7 @@ function CancelConfirmationCard({
           onClick={() => {
             if (runId) onCancelRun(runId)
           }}
-          className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all cursor-pointer"
+          className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg text-xs transition-all cursor-pointer shadow-xs"
         >
           Yes, cancel
         </button>
@@ -169,13 +169,14 @@ const MessageBubble = React.memo(({
   onDismissCancel?: (msgIndex: number) => void
 }) => {
   const isUser = msg.role === 'user'
+  const isError = !isUser && msg.content && (msg.content.toLowerCase().startsWith('error') || msg.content.toLowerCase().includes('failed to fetch'))
 
   return (
     <div className={`flex gap-3.5 max-w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
       
       {/* Left side avatar for Assistant */}
       {!isUser && (
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/[0.06] flex items-center justify-center text-zinc-400 shrink-0 shadow-md">
+        <div className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center text-primary shrink-0 shadow-xs">
           <Bot size={15} />
         </div>
       )}
@@ -185,22 +186,24 @@ const MessageBubble = React.memo(({
         
         {/* Text Bubble */}
         {(msg.content || msg.isTyping) && (
-          <div className={`rounded-2xl px-4 py-3 text-[13px] leading-relaxed shadow-sm ${
+          <div className={`rounded-xl px-4 py-3 text-xs leading-relaxed shadow-xs ${
             isUser
-              ? 'bg-[var(--color-surface)] border border-white/[0.05] text-zinc-100 font-medium'
-              : 'text-zinc-200'
+              ? 'bg-surface border border-border text-primary font-medium'
+              : isError
+              ? 'bg-rose-50 border border-rose-200 text-rose-800 font-medium'
+              : 'bg-surface border border-border text-primary'
           }`}>
             <div 
               dangerouslySetInnerHTML={{ __html: formatMarkdown(sanitizeUserFacingText(msg.content || '')) }} 
               className="space-y-1.5"
             />
             {msg.isTyping && (
-              <span className="inline-block w-1.5 h-3.5 bg-[var(--color-accent)] ml-1.5 animate-pulse vertical-middle align-middle" />
+              <span className="inline-block w-1.5 h-3.5 bg-sky-600 ml-1.5 animate-pulse align-middle" />
             )}
           </div>
         )}
 
-        {/* Step Progress Tracker Card (strips all technical terms) */}
+        {/* Step Progress Tracker Card */}
         {msg.isTask && msg.status !== 'needs_inputs' && (
           <div className="w-full min-w-[280px] md:min-w-[420px]">
             <ExecutionCard
@@ -216,7 +219,7 @@ const MessageBubble = React.memo(({
           </div>
         )}
 
-        {/* Inline Permission Gates (replacing overlays/modals) */}
+        {/* Inline Permission Gates */}
         {msg.isTask && msg.status === 'waiting' && (
           <div className="w-full min-w-[280px] md:min-w-[420px]">
             <PermissionCard
@@ -238,16 +241,16 @@ const MessageBubble = React.memo(({
 
         {/* Inline Integration Connection card */}
         {msg.isTask && msg.status === 'integration_required' && msg.taskConfig && (
-          <div className="w-full min-w-[280px] md:min-w-[420px] bg-[var(--color-surface)]/40 border border-white/[0.05] p-5 rounded-2xl flex flex-col items-center gap-3.5 text-center">
-            <div className="w-10 h-10 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-xl flex items-center justify-center">
-              <span className="text-xl">⚡</span>
+          <div className="w-full min-w-[280px] md:min-w-[420px] bg-surface border border-border p-5 rounded-xl flex flex-col items-center gap-3.5 text-center shadow-xs">
+            <div className="w-9 h-9 bg-secondary border border-border rounded-lg flex items-center justify-center text-primary font-bold">
+              ⚡
             </div>
-            <p className="text-[13px] text-zinc-300 font-medium">
+            <p className="text-xs text-primary font-medium">
               {msg.taskConfig.userMessage}
             </p>
             <a
               href={msg.taskConfig.actionUrl}
-              className="px-4 py-2.5 bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90 text-white font-black rounded-xl text-[9px] uppercase tracking-widest inline-block transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-95 no-underline"
+              className="px-4 py-2 bg-action-primary hover:bg-action-primary-hover text-action-primary-text font-semibold rounded-lg text-xs transition-all cursor-pointer shadow-xs no-underline"
             >
               Connect {msg.taskConfig.service === 'google-calendar' ? 'Google Calendar' : msg.taskConfig.service === 'google-drive' ? 'Google Drive' : msg.taskConfig.service.charAt(0).toUpperCase() + msg.taskConfig.service.slice(1)}
             </a>
@@ -262,7 +265,7 @@ const MessageBubble = React.memo(({
             onUpgradeClick={() => {
               window.location.href = msg.taskConfig.actionUrl
             }}
-            isDark={true}
+            isDark={false}
           />
         )}
 
@@ -280,7 +283,7 @@ const MessageBubble = React.memo(({
 
       {/* Right side avatar for User */}
       {isUser && (
-        <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-white/[0.06] flex items-center justify-center text-zinc-400 shrink-0 shadow-md">
+        <div className="w-8 h-8 rounded-lg bg-action-primary border border-border flex items-center justify-center text-action-primary-text shrink-0 shadow-xs">
           <User size={15} />
         </div>
       )}

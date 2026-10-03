@@ -1,228 +1,161 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-:root {
-  --background: #050507;
-  --foreground: #F4F4F6;
-  --accent: #534AB7;
-  --border: rgba(255, 255, 255, 0.05);
-  
-  --color-bg: #050507;
-  --color-surface: #0D0D11;
-  --color-border: rgba(255, 255, 255, 0.05);
-  --color-text-primary: #F4F4F6;
-  --color-text-secondary: #9E9EAF;
-  --color-accent: #534AB7;
-  --color-success: #1D9E75;
-}
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #050507;
-  color: #F4F4F6;
-  font-size: 14px;
-  line-height: 1.5;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.011em;
-}
-
-p {
-  line-height: 1.5;
-}
-
 @layer base {
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em;
+  :root {
+    --font-jakarta: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-jetbrains: 'JetBrains Mono', monospace;
+
+    /* Hybrid Mode B/A: Light Architectural Paper & Precision Obsidian */
+    --color-background: #F4F5F7;
+    --color-console: #EAECEF;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #F8F9FA;
+    --color-surface-subtle: #F1F3F5;
+
+    /* Precision Hairlines */
+    --color-border: #D2D6DC;
+    --color-border-subtle: #E2E5E9;
+    --color-border-focus: #0284C7;
+
+    /* High-Legibility Typography Substrates */
+    --color-text-primary: #111827;
+    --color-text-secondary: #4B5563;
+    --color-text-muted: #6B7280;
+
+    /* Action Controls */
+    --color-action-primary: #0F172A;
+    --color-action-primary-hover: #1E293B;
+    --color-action-primary-text: #FFFFFF;
+    --color-action-danger: #B91C1C;
+    --color-action-danger-hover: #991B1B;
+
+    /* State Signals (Calibrated for Light) */
+    --color-signal-idle: #6B7280;
+    --color-signal-blue: #0284C7;
+    --color-signal-amber: #B45309;
+    --color-signal-red: #B91C1C;
+    --color-signal-green: #047857;
+
+    /* Telemetry & Code Wells (Direction A Hybrid in Light Mode) */
+    --color-telemetry-bg: #0F172A;
+    --color-telemetry-text: #F8FAFC;
+    --color-telemetry-border: #334155;
+  }
+
+  .dark {
+    /* Hybrid Mode A: Refined Mineral Console & Aeronautical Slate */
+    --color-background: #161B22;
+    --color-console: #0E1217;
+    --color-surface: #212731;
+    --color-surface-elevated: #2A323F;
+    --color-surface-subtle: #1A2028;
+
+    /* Dark Precision Hairlines */
+    --color-border: #374151;
+    --color-border-subtle: #28313E;
+    --color-border-focus: #38BDF8;
+
+    /* Dark High-Legibility Typography */
+    --color-text-primary: #F3F4F6;
+    --color-text-secondary: #9CA3AF;
+    --color-text-muted: #6B7280;
+
+    /* Dark Action Controls */
+    --color-action-primary: #2563EB;
+    --color-action-primary-hover: #1D4ED8;
+    --color-action-primary-text: #FFFFFF;
+    --color-action-danger: #DC2626;
+    --color-action-danger-hover: #B91C1C;
+
+    /* State Signals (Calibrated for Dark) */
+    --color-signal-idle: #9CA3AF;
+    --color-signal-blue: #38BDF8;
+    --color-signal-amber: #FBBF24;
+    --color-signal-red: #F87171;
+    --color-signal-green: #34D399;
+
+    /* Telemetry & Code Wells */
+    --color-telemetry-bg: #0E1217;
+    --color-telemetry-text: #F3F4F6;
+    --color-telemetry-border: #374151;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-jakarta);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
+  /* Tabular numerals for metrics, timestamps, and currency values */
+  .tabular-nums,
+  td,
+  th,
+  .metric-value {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Precision Focus Ring */
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--color-border-focus);
   }
 }
 
 @layer components {
+  /* Precision Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-console);
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
+    background: var(--color-border);
+    border-radius: 2px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--color-text-muted);
   }
 
-  .glass-card {
-    @apply bg-[#0D0D11]/90 border border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md transition-all duration-300;
+  /* Recessed Console Well */
+  .console-well {
+    background-color: var(--color-console);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
   }
 
-  .text-xs-caps {
-    @apply text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500;
+  /* Machined Structural Panel */
+  .machined-panel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
   }
 
-  .text-stat-value {
-    @apply text-xl font-bold tracking-tight text-white;
-  }
-}
-
-/* Base styles for the selection glow */
-.selection\:bg-\[#534AB7\]\/30 ::selection {
-  background-color: rgba(83, 74, 183, 0.3);
-}
-
-/* Smooth transitions for all interactive elements */
-a, button, input, select, textarea {
-  @apply transition-all duration-200;
-}
-
-/* Remove default focus rings and use custom ones */
-*:focus-visible {
-  @apply outline-none ring-2 ring-[#534AB7]/30 ring-offset-0;
-}
-
-/* ==========================================================================
-   PREMIUM OBSIDIAN-DARK & PURPLE COLOR HARMONIZATION OVERRIDES (CHATBOLT DESIGN SYSTEM)
-   ========================================================================== */
-
-.dark {
-  /* 1. Global text colors */
-  .text-\[\#00DFB8\],
-  .text-\[rgb\(0\2c 223\2c 184\)\],
-  .group-hover\:text-\[\#00DFB8\]:hover,
-  .group-hover\:text-\[\#00DFB8\],
-  .hover\:text-\[\#00DFB8\]:hover,
-  .text-accent {
-    color: #534AB7 !important;
-  }
-
-  /* 2. Global background colors */
-  .bg-\[\#00DFB8\],
-  .bg-\[rgb\(0\2c 223\2c 184\)\],
-  .hover\:bg-\[\#00DFB8\]:hover,
-  .group-hover\:bg-\[\#00DFB8\]:hover,
-  .group-hover\:bg-\[\#00DFB8\],
-  .bg-accent {
-    background-color: #534AB7 !important;
-    color: white !important;
-  }
-
-  /* 3. Translucent background overlays */
-  .bg-\[\#00DFB8\]\/10,
-  .group-hover\:bg-\[\#00DFB8\]\/10:hover,
-  .group-hover\:bg-\[\#00DFB8\]\/10 {
-    background-color: rgba(83, 74, 183, 0.1) !important;
-  }
-
-  .bg-\[\#00DFB8\]\/5 {
-    background-color: rgba(83, 74, 183, 0.05) !important;
-  }
-
-  .bg-\[\#00DFB8\]\/20,
-  .group-hover\:bg-\[\#00DFB8\]\/20:hover {
-    background-color: rgba(83, 74, 183, 0.2) !important;
-  }
-
-  /* 4. Global border colors */
-  .border-\[\#00DFB8\],
-  .border-\[rgb\(0\2c 223\2c 184\)\],
-  .focus\:border-\[\#00DFB8\]:focus,
-  .hover\:border-\[\#00DFB8\]:hover,
-  .group-hover\:border-\[\#00DFB8\]:hover,
-  .group-hover\:border-\[\#00DFB8\],
-  .border-accent {
-    border-color: #534AB7 !important;
-  }
-
-  .border-\[\#00DFB8\]\/10 {
-    border-color: rgba(83, 74, 183, 0.1) !important;
-  }
-
-  .border-\[\#00DFB8\]\/20 {
-    border-color: rgba(83, 74, 183, 0.2) !important;
-  }
-
-  .border-\[\#00DFB8\]\/30,
-  .hover\:border-\[\#00DFB8\]\/30:hover,
-  .group-hover\:border-\[\#00DFB8\]\/30:hover,
-  .group-hover\:border-\[\#00DFB8\]\/30 {
-    border-color: rgba(83, 74, 183, 0.3) !important;
-  }
-
-  .border-\[\#00DFB8\]\/40 {
-    border-color: rgba(83, 74, 183, 0.4) !important;
-  }
-
-  .border-\[\#00DFB8\]\/50,
-  .focus\:border-\[\#00DFB8\]\/50:focus,
-  .hover\:border-\[\#00DFB8\]\/50:hover,
-  .group-hover\:border-\[\#00DFB8\]\/50:hover,
-  .group-hover\:border-\[\#00DFB8\]\/50 {
-    border-color: rgba(83, 74, 183, 0.5) !important;
-  }
-
-  .selection\:bg-\[\#00DFB8\]\/30 ::selection {
-    background-color: rgba(83, 74, 183, 0.3) !important;
-  }
-
-  /* 5. Switch other neon states to purple accent */
-  .bg-\[\#B8FF00\],
-  .hover\:bg-\[\#c8ff20\]:hover,
-  .hover\:bg-\[\#B8FF00\]:hover {
-    background-color: #534AB7 !important;
-    color: white !important;
-  }
-
-  .text-\[\#B8FF00\] {
-    color: #534AB7 !important;
-  }
-
-  .border-\[\#B8FF00\] {
-    border-color: #534AB7 !important;
-  }
-
-  .bg-\[\#B8FF00\]\/10,
-  .hover\:bg-\[\#B8FF00\]\/10:hover {
-    background-color: rgba(83, 74, 183, 0.1) !important;
-  }
-
-  .shadow-\[\#B8FF00\]\/30 {
-    box-shadow: 0 0 12px rgba(83, 74, 183, 0.3) !important;
-  }
-
-  /* 6. General Dashboard Light Mode Text Overrides */
-  .text-\[\#111\],
-  .text-\[\#1A1A1A\] {
-    color: #EDEDED !important;
-  }
-
-  .bg-white,
-  .bg-white\/80 {
-    background-color: #0D0D11 !important;
-  }
-
-  .bg-\[\#FAFAFA\],
-  .bg-\[\#F9F9F9\],
-  .bg-gray-50 {
-    background-color: #050507 !important;
-  }
-
-  .border-black\/5,
-  .border-black\/8,
-  .border-black\/10,
-  .border-black\/\[0\.08\],
-  .border-black\/\[0\.05\],
-  .border-black\/\[0\.03\] {
-    border-color: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  .hover\:bg-gray-50:hover,
-  .hover\:bg-gray-100:hover {
-    background-color: rgba(255, 255, 255, 0.04) !important;
+  /* Dark Telemetry Well (Direction A module in both modes) */
+  .telemetry-well {
+    background-color: var(--color-telemetry-bg);
+    color: var(--color-telemetry-text);
+    border: 1px solid var(--color-telemetry-border);
+    border-radius: 6px;
   }
 }

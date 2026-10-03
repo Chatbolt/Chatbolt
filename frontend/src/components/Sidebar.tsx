@@ -13,8 +13,12 @@ export default function Sidebar() {
       {/* Top Header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-white/5 shrink-0">
         <Link href="/" className="flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
-            <path d="M10.82 2.652a2.001 2.001 0 0 1 2.36 0l5.875 4.316a2 2 0 0 1 .74 2.278l-2.245 6.908a2 2 0 0 1-1.902 1.382H8.352a2 2 0 0 1-1.902-1.382l-2.245-6.908a2 2 0 0 1 .74-2.278l5.875-4.316Z" fill="currentColor"/>
+          {/* Chatbolt Three-Pillar Mark */}
+          <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <rect x="6"  y="18" width="10" height="20" fill="#F8FAFC"/>
+            <rect x="19" y="10" width="10" height="28" fill="#F8FAFC"/>
+            <rect x="32" y="18" width="10" height="20" fill="#F8FAFC"/>
+            <rect x="6"  y="40" width="36" height="2"  fill="#00DFB8"/>
           </svg>
           <span className="font-serif font-bold text-[18px]">chatbolt</span>
         </Link>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48" fill="none">
+  <!--
+    Chatbolt Full Wordmark — Brand Color on Dark
+    Mark uses the full color system. Wordmark uses off-white for maximum contrast.
+    For use on dark product backgrounds where the brand color should appear.
+  -->
+  <rect x="0" y="18" width="10" height="20" fill="#7C74CC"/>
+  <rect x="13" y="10" width="10" height="28" fill="#534AB7"/>
+  <rect x="26" y="18" width="10" height="20" fill="#7C74CC"/>
+  <rect x="0" y="40" width="36" height="2" fill="#00DFB8"/>
+
+  <text
+    x="46"
+    y="36"
+    font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.45"
+    fill="#F3F4F6"
+  >Chatbolt</text>
+</svg>

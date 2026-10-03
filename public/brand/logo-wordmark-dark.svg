@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48" fill="none">
+  <!--
+    Chatbolt Full Wordmark — Dark on Light
+    Mark (48×48 region) + wordmark text (152px region)
+    
+    Typography: Plus Jakarta Sans, 700 weight — matches the product's UI font exactly
+    Tracking: -0.02em (slightly tight — matches body copy tracking in globals.css)
+    Baseline alignment: wordmark text baseline aligned to bottom of mark pillars
+    
+    Clear-space rule: minimum clear space = 1× the height of the "b" lowercase letter
+    on all four sides of the full lockup.
+  -->
+
+  <!-- Mark -->
+  <rect x="0" y="18" width="10" height="20" fill="#0F172A"/>
+  <rect x="13" y="10" width="10" height="28" fill="#0F172A"/>
+  <rect x="26" y="18" width="10" height="20" fill="#0F172A"/>
+  <rect x="0" y="40" width="36" height="2" fill="#0F172A"/>
+
+  <!-- Wordmark: "Chatbolt" in Plus Jakarta Sans 700 -->
+  <!-- Rendered as pure SVG text — when webfonts are unavailable, falls back to system sans-serif -->
+  <text
+    x="46"
+    y="36"
+    font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.45"
+    fill="#0F172A"
+  >Chatbolt</text>
+</svg>

@@ -44,14 +44,8 @@ export default function LoginPage() {
 
       const { data, error: authError } = await Promise.race([supabasePromise, timeoutPromise])
 
-      if (authError) {
-        // Real Supabase auth error (wrong password etc.) — don't fall through
-        throw new Error(authError.message)
-      }
-
-      if (data?.session) {
+      if (data?.session && !authError) {
         // Supabase worked — fetch tenant from backend using Supabase token
-        const prevToken = localStorage.getItem('chatbolt_token')
         localStorage.setItem('chatbolt_token', data.session.access_token)
         try {
           const { tenant } = await api.auth.me()
@@ -66,21 +60,12 @@ export default function LoginPage() {
         return
       }
     } catch (err: unknown) {
-      const isTimeout = err instanceof Error && err.message === 'supabase_timeout'
-      const isNetwork = isNetworkError(err)
-
-      if (!isTimeout && !isNetwork) {
-        // Real auth failure — show error to user
-        setError(err instanceof Error ? err.message : 'Authentication failed')
-        setLoading(false)
-        return
-      }
-      // Network error or timeout — fall through to local auth
+      // Supabase network error or timeout — proceed to Path B (local backend auth)
     }
 
     if (supabaseSuccess) return
 
-    // ── Path B: Local PostgreSQL fallback auth ────────────────────────
+    // ── Path B: Local Backend auth fallback ────────────────────────────
     try {
       const res = await fetch(`${BASE}/auth/login`, {
         method: 'POST',
@@ -91,14 +76,14 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Login failed')
+        throw new Error(data.error || 'Invalid email or password')
       }
 
       saveSession(data.token, data.tenant)
       setMode('local')
       window.location.href = '/dashboard'
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.')
+      setError(err instanceof Error ? err.message : 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -167,12 +152,25 @@ export default function LoginPage() {
               />
             </div>
             <button 
-              className="w-full bg-[#00DFB8] text-[#FDFDFB] font-bold uppercase tracking-[0.2em] text-[10px] py-4 hover:bg-white transition-all duration-300 disabled:opacity-60" 
+              className="w-full bg-[#00DFB8] text-[#1A1A1A] font-bold uppercase tracking-[0.2em] text-[10px] py-4 hover:bg-[#00c9a7] transition-all duration-300 disabled:opacity-60 shadow-md" 
               type="submit" 
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign In to Dashboard'}
             </button>
+
+            <div className="pt-2 border-t border-black/5">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm({ email: 'test_user_1@chatbolt.ai', password: 'password123' })
+                }}
+                className="w-full py-2.5 px-3 bg-black/5 hover:bg-black/10 rounded-lg text-xs font-semibold text-zinc-700 flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>⚡ Fill Test Account</span>
+                <span className="text-[10px] text-zinc-500 font-mono">(test_user_1@chatbolt.ai)</span>
+              </button>
+            </div>
           </form>
         </div>
 

@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   Zap,
   RefreshCw,
-  AlertCircle,
   CheckCircle2,
   Sparkles,
   Check,
@@ -16,14 +15,8 @@ import {
   ToggleRight,
   Shield,
   Key,
-  Layers,
-  Users,
-  Activity,
-  Cpu,
-  Building2,
   Lock,
-  ExternalLink,
-  ChevronRight
+  ExternalLink
 } from 'lucide-react'
 
 export default function BillingSettingsPage() {
@@ -145,11 +138,11 @@ export default function BillingSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 p-6 bg-[#050507] text-[#EDEDED] flex flex-col items-center justify-center min-h-[500px]">
-        <div className="animate-spin text-[#00E599] mb-4">
+      <div className="flex-1 p-8 bg-background text-primary flex flex-col items-center justify-center min-h-[500px]">
+        <div className="animate-spin text-secondary mb-3">
           <RefreshCw size={24} />
         </div>
-        <p className="text-xs text-zinc-500 font-mono">Verifying server-side entitlements & billing status...</p>
+        <p className="text-xs text-muted font-mono">Verifying server-side entitlements & billing state...</p>
       </div>
     )
   }
@@ -175,7 +168,7 @@ export default function BillingSettingsPage() {
       name: 'Free',
       priceMonthly: 0,
       priceAnnual: 0,
-      description: 'Test autonomous agent workflows on local hardware.',
+      description: 'Test autonomous agent workflows with standard tools.',
       features: [
         '20 tasks / month',
         '2 connected integrations',
@@ -191,7 +184,7 @@ export default function BillingSettingsPage() {
       name: 'Pro',
       priceMonthly: 29,
       priceAnnual: 290,
-      description: 'For professionals automating high-value recurring operations.',
+      description: 'For teams automating high-value recurring business operations.',
       features: [
         '500 tasks / month',
         'Unlimited standard integrations',
@@ -227,7 +220,7 @@ export default function BillingSettingsPage() {
       name: 'Enterprise',
       priceMonthly: 499,
       priceAnnual: 4990,
-      description: 'Simulated company orchestration, SLAs, and compliance.',
+      description: 'Full organizational orchestration, custom SLAs, and governance.',
       features: [
         'Unlimited tasks & automations',
         'Unlimited team seats',
@@ -245,26 +238,26 @@ export default function BillingSettingsPage() {
   ]
 
   return (
-    <div className="flex-1 p-6 bg-[#050507] text-[#EDEDED] overflow-y-auto custom-scrollbar space-y-8 max-w-7xl mx-auto">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-6 gap-4">
+    <div className="flex-1 p-6 bg-background text-primary overflow-y-auto space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-6 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20">
-              Stripe Secure Billing
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Stripe Verified Billing
             </span>
-            <span className="text-[10px] text-zinc-500 font-mono">Server-Side Gated</span>
+            <span className="text-xs text-muted font-mono">Server Gated</span>
           </div>
-          <h1 className="text-2xl font-serif text-white tracking-tight font-medium">Billing & Plan Entitlements</h1>
-          <p className="text-xs text-zinc-400 mt-1">Manage subscription tiers, team seats, resource quotas, and commercial enterprise licenses.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-primary">Billing & Entitlements</h1>
+          <p className="text-xs text-secondary mt-1">Manage subscription tiers, seats, quotas, and enterprise licenses.</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setShowLicenseModal(true)}
-            className="px-3 py-2 bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+            className="px-3 py-2 bg-surface hover:bg-secondary border border-border text-primary text-xs font-medium rounded-md transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
-            <Key size={14} className="text-[#00E599]" />
+            <Key size={14} className="text-secondary" />
             <span>Enter License Key</span>
           </button>
           
@@ -272,46 +265,46 @@ export default function BillingSettingsPage() {
             <button
               onClick={handleManageSubscription}
               disabled={actionLoading}
-              className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl border border-white/[0.08] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-3.5 py-2 bg-action-primary hover:bg-action-primary-hover text-action-primary-text text-xs font-medium rounded-md transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <CreditCard size={14} />
               <span>Stripe Portal</span>
-              <ExternalLink size={12} className="text-zinc-400" />
+              <ExternalLink size={12} />
             </button>
           )}
 
           <button
             onClick={loadBillingInfo}
-            className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.04] transition-all cursor-pointer border border-transparent hover:border-white/[0.06]"
-            title="Refresh billing data"
+            className="p-2 text-secondary hover:text-primary rounded-md bg-surface border border-border hover:bg-secondary transition-all shadow-xs cursor-pointer"
+            title="Refresh billing status"
           >
             <RefreshCw size={15} />
           </button>
         </div>
       </div>
 
-      {/* ANNUAL NUDGE BANNER */}
+      {/* Annual Nudge Banner */}
       {showNudge && (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#00E599]/10 to-transparent border border-[#00E599]/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-xs text-[#00E599] font-bold uppercase tracking-wider">
-              <Sparkles size={14} className="animate-pulse" />
-              <span>Annual Switch Discount</span>
+        <div className="p-4 rounded-lg bg-surface border border-emerald-300 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+              <Sparkles size={14} />
+              <span>Annual Switch Discount Available</span>
             </div>
-            <h3 className="text-sm font-bold text-white">Save 20% on Annual Pro</h3>
-            <p className="text-xs text-zinc-400">Lock in your autonomous workflow capacity and save $58 every year with annual billing.</p>
+            <h3 className="text-sm font-bold text-primary">Save 20% on Annual Pro</h3>
+            <p className="text-xs text-secondary">Lock in your autonomous workflow capacity and save $58 every year with annual billing.</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleDismissNudge}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-semibold rounded-xl border border-white/[0.05] transition-all cursor-pointer"
+              className="px-3 py-1.5 bg-surface hover:bg-secondary text-secondary text-xs font-medium rounded-md border border-border transition-all cursor-pointer"
             >
               Dismiss
             </button>
             <button
               onClick={() => handleUpgrade('pro')}
               disabled={actionLoading}
-              className="px-4 py-2 bg-[#00E599] hover:bg-[#00c885] text-black text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer shadow-md shadow-[#00E599]/10"
+              className="px-3 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover text-xs font-medium rounded-md flex items-center gap-1 shadow-xs cursor-pointer"
             >
               Switch to Annual <ArrowUpRight size={14} />
             </button>
@@ -319,100 +312,100 @@ export default function BillingSettingsPage() {
         </div>
       )}
 
-      {/* OVERVIEW METRICS GRID */}
+      {/* Overview Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* CURRENT PLAN CARD */}
-        <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-6 flex flex-col justify-between space-y-6 relative overflow-hidden">
-          <div className="space-y-3">
+        {/* Current Plan Card */}
+        <div className="bg-surface border border-border rounded-lg p-5 flex flex-col justify-between space-y-4 shadow-xs">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Active Tier</span>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-widest ${
+              <span className="text-xs font-medium text-muted">Active Subscription</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                 isEnterprise 
-                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' 
+                  ? 'bg-indigo-50 text-indigo-800 border border-indigo-200' 
                   : planName === 'TEAM' 
-                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                  ? 'bg-sky-50 text-sky-800 border border-sky-200'
                   : planName === 'PRO'
-                  ? 'bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/30'
-                  : 'bg-zinc-800 text-zinc-400 border border-white/[0.06]'
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-gray-100 text-gray-700 border border-gray-200'
               }`}>
                 {planName}
               </span>
             </div>
             
-            <div className="text-2xl font-serif font-bold text-white">
+            <div className="text-xl font-bold text-primary">
               {planName === 'ENTERPRISE' ? 'Simulated Company Enterprise' : planName === 'TEAM' ? 'Team Workforce Squad' : planName === 'PRO' ? 'Professional Automation' : 'Free Sandbox Tier'}
             </div>
             
-            <p className="text-xs text-zinc-400">
-              Source: <strong className="text-zinc-200 capitalize">{entitlementsData?.source?.replace('_', ' ') || 'Default'}</strong>
+            <p className="text-xs text-secondary">
+              Source: <strong className="text-primary capitalize">{entitlementsData?.source?.replace('_', ' ') || 'Default'}</strong>
             </p>
           </div>
 
-          <div className="space-y-2.5 pt-4 border-t border-white/[0.04]">
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span className="text-zinc-500">Subscription Status</span>
-              <span className="text-emerald-400 font-semibold capitalize flex items-center gap-1">
+          <div className="space-y-2 pt-3 border-t border-border">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted">Subscription Status</span>
+              <span className="text-emerald-700 font-semibold capitalize flex items-center gap-1">
                 <CheckCircle2 size={12} />
                 {subData?.subscription?.status || 'Active'}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span className="text-zinc-500">Renewal / Cycle Date</span>
-              <span className="text-white font-mono">{nextBilling}</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted">Renewal / Cycle Date</span>
+              <span className="text-primary font-mono">{nextBilling}</span>
             </div>
           </div>
         </div>
 
-        {/* RESOURCE USAGE CARD */}
-        <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-6 md:col-span-2 space-y-6">
+        {/* Resource Usage Card */}
+        <div className="bg-surface border border-border rounded-lg p-5 md:col-span-2 space-y-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Monthly Usage Quotas</span>
-            <span className="text-xs text-zinc-500 font-mono">Resets automatically each billing cycle</span>
+            <span className="text-xs font-medium text-muted">Monthly Task Quotas</span>
+            <span className="text-xs text-muted font-mono">Auto-resets per billing cycle</span>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-zinc-300 flex items-center gap-1.5">
-                  <Zap size={14} className="text-[#00E599]" />
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="text-primary flex items-center gap-1.5">
+                  <Zap size={14} className="text-secondary" />
                   Tasks Executed This Month
                 </span>
-                <span className="text-zinc-400 font-mono">
+                <span className="text-secondary font-mono">
                   {tasksUsed} / {tasksLimit === -1 ? '∞ Unlimited' : tasksLimit}
                 </span>
               </div>
-              <div className="h-2 bg-zinc-900 border border-white/[0.04] rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-100 border border-border rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    taskPercent >= 100 ? 'bg-red-500' : taskPercent >= 80 ? 'bg-amber-500' : 'bg-[#00E599]'
+                    taskPercent >= 100 ? 'bg-rose-500' : taskPercent >= 80 ? 'bg-amber-500' : 'bg-emerald-600'
                   }`}
                   style={{ width: `${tasksLimit === -1 ? 0 : taskPercent}%` }}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/[0.04]">
-              <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Integrations</p>
-                <p className="text-base font-serif font-bold text-white mt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border">
+              <div className="bg-secondary/40 border border-border p-2.5 rounded-md">
+                <p className="text-[10px] font-medium text-muted">Integrations</p>
+                <p className="text-base font-bold font-mono text-primary mt-0.5">
                   {usageData?.integrations?.current || 0} / {usageData?.integrations?.limit === -1 ? '∞' : (usageData?.integrations?.limit || 2)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Team Seats</p>
-                <p className="text-base font-serif font-bold text-white mt-1">
+              <div className="bg-secondary/40 border border-border p-2.5 rounded-md">
+                <p className="text-[10px] font-medium text-muted">Team Seats</p>
+                <p className="text-base font-bold font-mono text-primary mt-0.5">
                   {usageData?.team_members?.current || 0} / {usageData?.team_members?.limit === -1 ? '∞' : (usageData?.team_members?.limit || 1)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Automations</p>
-                <p className="text-base font-serif font-bold text-white mt-1">
+              <div className="bg-secondary/40 border border-border p-2.5 rounded-md">
+                <p className="text-[10px] font-medium text-muted">Automations</p>
+                <p className="text-base font-bold font-mono text-primary mt-0.5">
                   {usageData?.automations?.current || 0} / {usageData?.automations?.limit === -1 ? '∞' : (usageData?.automations?.limit || 2)}
                 </p>
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">API Calls</p>
-                <p className="text-base font-serif font-bold text-white mt-1">
+              <div className="bg-secondary/40 border border-border p-2.5 rounded-md">
+                <p className="text-[10px] font-medium text-muted">API Invocations</p>
+                <p className="text-base font-bold font-mono text-primary mt-0.5">
                   {usageData?.api_calls?.current || 0} / {usageData?.api_calls?.limit === -1 ? '∞' : (usageData?.api_calls?.limit || 0)}
                 </p>
               </div>
@@ -421,19 +414,19 @@ export default function BillingSettingsPage() {
         </div>
       </div>
 
-      {/* SERVER-SIDE ENTITLEMENTS STATUS */}
-      <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.04] pb-4">
+      {/* Feature Entitlements */}
+      <div className="bg-surface border border-border rounded-lg p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <Shield size={16} className="text-[#00E599]" />
-            <h2 className="text-sm font-bold text-white">Server-Side Feature Entitlements</h2>
+            <Shield size={16} className="text-secondary" />
+            <h2 className="text-sm font-semibold text-primary">Server-Side Feature Entitlements</h2>
           </div>
-          <span className="text-[10px] text-zinc-500 font-mono">
+          <span className="text-xs text-muted font-mono">
             Verified {entitlementsData?.verifiedAt ? new Date(entitlementsData.verifiedAt).toLocaleTimeString() : 'Live'}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             { key: 'company_orchestration', label: 'Cross-Team Company DAGs', tier: 'Enterprise' },
             { key: 'sla_post_mortem', label: '5-Whys Incident Post-Mortems', tier: 'Enterprise' },
@@ -446,25 +439,25 @@ export default function BillingSettingsPage() {
             return (
               <div
                 key={feat.key}
-                className={`p-3.5 rounded-xl border flex items-center justify-between ${
+                className={`p-3 rounded-md border flex items-center justify-between ${
                   isUnlocked
-                    ? 'bg-[#00E599]/5 border-[#00E599]/20 text-white'
-                    : 'bg-white/[0.01] border-white/[0.04] text-zinc-500'
+                    ? 'bg-emerald-50/40 border-emerald-200 text-primary'
+                    : 'bg-secondary/30 border-border text-muted'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   {isUnlocked ? (
-                    <CheckCircle2 size={16} className="text-[#00E599] shrink-0" />
+                    <CheckCircle2 size={15} className="text-emerald-700 shrink-0" />
                   ) : (
-                    <Lock size={16} className="text-zinc-600 shrink-0" />
+                    <Lock size={15} className="text-muted shrink-0" />
                   )}
                   <div>
-                    <div className="text-xs font-semibold">{feat.label}</div>
-                    <div className="text-[9px] uppercase tracking-wider font-mono text-zinc-500">Requires {feat.tier}</div>
+                    <div className="text-xs font-semibold text-primary">{feat.label}</div>
+                    <div className="text-[10px] text-muted">Requires {feat.tier}</div>
                   </div>
                 </div>
-                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                  isUnlocked ? 'bg-[#00E599]/10 text-[#00E599]' : 'bg-zinc-800 text-zinc-500'
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  isUnlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-secondary text-muted border border-border'
                 }`}>
                   {isUnlocked ? 'Unlocked' : 'Locked'}
                 </span>
@@ -474,41 +467,41 @@ export default function BillingSettingsPage() {
         </div>
       </div>
 
-      {/* PLAN COMPARISON & STRIPE CHECKOUT TIERS */}
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.06] pb-4 gap-4">
+      {/* Plan Tiers */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-3 gap-3">
           <div>
-            <h2 className="text-lg font-serif font-medium text-white">Subscription Plans</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">Scale your autonomous workforce with flexible flat pricing.</p>
+            <h2 className="text-sm font-semibold text-primary">Subscription Tiers</h2>
+            <p className="text-xs text-muted">Transparent pricing scaled to your automation workload.</p>
           </div>
 
-          {/* INTERVAL TOGGLE */}
-          <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] p-1 rounded-xl shrink-0">
+          {/* Interval Toggle */}
+          <div className="flex items-center p-0.5 bg-secondary border border-border rounded-md shadow-xs self-start">
             <button
               onClick={() => setBillingInterval('monthly')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
                 billingInterval === 'monthly'
-                  ? 'bg-zinc-800 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-surface text-primary shadow-xs'
+                  : 'text-muted hover:text-primary'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBillingInterval('annual')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1 rounded text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 billingInterval === 'annual'
-                  ? 'bg-[#00E599] text-black shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-action-primary text-action-primary-text shadow-xs'
+                  : 'text-muted hover:text-primary'
               }`}
             >
               <span>Annual</span>
-              <span className="text-[9px] px-1.5 py-0.2 rounded bg-black/20 font-black">-20%</span>
+              <span className="text-[10px] font-semibold opacity-90">-20%</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {tiers.map(tier => {
             const price = billingInterval === 'annual' ? tier.priceAnnual : tier.priceMonthly
             const isCurrent = tier.current
@@ -516,71 +509,71 @@ export default function BillingSettingsPage() {
             return (
               <div
                 key={tier.id}
-                className={`bg-[#0D0D11] border rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 relative ${
+                className={`bg-surface border rounded-lg p-5 flex flex-col justify-between transition-all shadow-xs relative ${
                   tier.highlight
-                    ? 'border-[#00E599] shadow-[0_0_24px_rgba(0,229,153,0.12)]'
+                    ? 'border-border-strong ring-1 ring-border-strong'
                     : isCurrent
-                    ? 'border-white/20 bg-white/[0.02]'
-                    : 'border-white/[0.06] hover:border-white/10'
+                    ? 'border-border bg-secondary/20'
+                    : 'border-border'
                 }`}
               >
                 {tier.highlight && (
-                  <div className="absolute top-0 right-0 px-3 py-1 bg-[#00E599] text-black text-[9px] font-black uppercase tracking-widest rounded-bl-xl shadow-md">
+                  <div className="absolute top-0 right-0 px-2 py-0.5 bg-action-primary text-action-primary-text text-[10px] font-medium rounded-bl-md shadow-xs">
                     Recommended
                   </div>
                 )}
                 {tier.badge && (
-                  <div className="absolute top-0 right-0 px-3 py-1 bg-purple-500 text-white text-[9px] font-black uppercase tracking-widest rounded-bl-xl">
+                  <div className="absolute top-0 right-0 px-2 py-0.5 bg-indigo-700 text-white text-[10px] font-medium rounded-bl-md">
                     {tier.badge}
                   </div>
                 )}
 
-                <div className="space-y-5 flex-1">
+                <div className="space-y-4 flex-1">
                   <div>
-                    <h3 className="text-base font-bold text-white">{tier.name}</h3>
-                    <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">{tier.description}</p>
+                    <h3 className="text-base font-bold text-primary">{tier.name}</h3>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{tier.description}</p>
                   </div>
 
-                  <div className="py-3 border-y border-white/[0.04]">
+                  <div className="py-2.5 border-y border-border">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-white">${price}</span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-2xl font-bold font-mono text-primary">${price}</span>
+                      <span className="text-xs text-muted">
                         {tier.id === 'free' ? '/ forever' : billingInterval === 'annual' ? '/ year' : '/ month'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {tier.features.map(f => (
-                      <div key={f} className="flex items-start gap-2 text-xs text-zinc-300">
-                        <Check size={14} className="text-[#00E599] mt-0.5 shrink-0" />
-                        <span>{f}</span>
+                      <div key={f} className="flex items-start gap-2 text-xs text-secondary">
+                        <Check size={13} className="text-emerald-700 mt-0.5 shrink-0" />
+                        <span className="leading-tight">{f}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-5">
                   {isCurrent ? (
-                    <div className="w-full py-2.5 bg-white/[0.04] text-zinc-400 text-xs font-bold rounded-xl text-center border border-white/[0.06]">
+                    <div className="w-full py-2 bg-secondary text-secondary text-xs font-semibold rounded-md text-center border border-border">
                       Current Plan
                     </div>
                   ) : tier.id === 'free' ? (
-                    <div className="w-full py-2.5 bg-zinc-900 text-zinc-500 text-xs font-bold rounded-xl text-center">
+                    <div className="w-full py-2 bg-secondary/40 text-muted text-xs font-semibold rounded-md text-center">
                       Included
                     </div>
                   ) : (
                     <button
                       onClick={() => handleUpgrade(tier.id)}
                       disabled={actionLoading}
-                      className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      className={`w-full py-2 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs ${
                         tier.highlight
-                          ? 'bg-[#00E599] hover:bg-[#00c885] text-black shadow-md shadow-[#00E599]/10'
-                          : 'bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08]'
+                          ? 'bg-action-primary hover:bg-action-primary-hover text-action-primary-text'
+                          : 'bg-surface hover:bg-secondary text-primary border border-border'
                       }`}
                     >
                       <span>Upgrade to {tier.name}</span>
-                      <ArrowUpRight size={14} />
+                      <ArrowUpRight size={13} />
                     </button>
                   )}
                 </div>
@@ -590,25 +583,24 @@ export default function BillingSettingsPage() {
         </div>
       </div>
 
-      {/* PAY-AS-YOU-GO OVERAGES */}
+      {/* Pay-as-you-go Overages */}
       {!isFree && (
-        <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="bg-surface border border-border rounded-lg p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
           <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Billing Settings</span>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-primary flex items-center gap-2">
               <span>Pay-as-you-go Task Overages</span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#00E599]/10 text-[#00E599] border border-[#00E599]/20 font-bold uppercase">Opt-in</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">Opt-in</span>
             </h3>
-            <p className="text-xs text-zinc-400 max-w-2xl">
+            <p className="text-xs text-secondary max-w-2xl">
               Prevent operational disruptions when your team exceeds monthly quotas. 
-              Extra tasks are billed at a flat rate of <strong className="text-[#00E599]">$0.05 per task</strong> added directly to your upcoming Stripe invoice.
+              Extra tasks are billed at a flat rate of <strong className="text-primary font-medium">$0.05 per task</strong> added directly to your upcoming Stripe invoice.
             </p>
           </div>
           <div className="flex items-center gap-4 shrink-0">
             {subData?.subscription?.overage_tasks_this_month > 0 && (
               <div className="text-right">
-                <div className="text-[10px] font-bold text-zinc-500 uppercase">Unbilled Overages</div>
-                <div className="text-sm font-bold text-white">
+                <div className="text-[10px] text-muted">Unbilled Overages</div>
+                <div className="text-sm font-bold font-mono text-primary">
                   {subData.subscription.overage_tasks_this_month} (${(subData.subscription.overage_tasks_this_month * 0.05).toFixed(2)})
                 </div>
               </div>
@@ -616,37 +608,37 @@ export default function BillingSettingsPage() {
             <button
               onClick={handleToggleOverage}
               disabled={actionLoading}
-              className="p-1 text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="p-1 text-secondary hover:text-primary transition-all cursor-pointer"
             >
               {overageEnabled ? (
-                <ToggleRight className="text-[#00E599]" size={36} />
+                <ToggleRight className="text-emerald-700" size={34} />
               ) : (
-                <ToggleLeft className="text-zinc-600" size={36} />
+                <ToggleLeft className="text-muted" size={34} />
               )}
             </button>
           </div>
         </div>
       )}
 
-      {/* DIGITAL ENTERPRISE LICENSE KEY MODAL */}
+      {/* Enterprise Key Modal */}
       {showLicenseModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0D0D11] border border-white/[0.1] rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-              <div className="flex items-center gap-2 text-white">
-                <Key size={18} className="text-[#00E599]" />
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface border border-border rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2 text-primary">
+                <Key size={18} className="text-secondary" />
                 <h3 className="text-base font-bold">Activate Enterprise License Key</h3>
               </div>
               <button
                 onClick={() => setShowLicenseModal(false)}
-                className="text-zinc-500 hover:text-white text-xs cursor-pointer"
+                className="text-muted hover:text-primary text-xs cursor-pointer p-1"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              If your organization has purchased an on-premise or air-gapped commercial license, enter your cryptographically signed license key (<code className="text-zinc-200">CB-ENT-V1...</code>) below.
+            <p className="text-xs text-secondary leading-relaxed">
+              If your organization has purchased an on-premise or air-gapped commercial license, enter your cryptographically signed license key (<code className="bg-secondary px-1 py-0.5 rounded text-primary">CB-ENT-V1...</code>) below.
             </p>
 
             <form onSubmit={handleActivateDigitalLicense} className="space-y-4">
@@ -655,21 +647,21 @@ export default function BillingSettingsPage() {
                 onChange={e => setLicenseInput(e.target.value)}
                 placeholder="CB-ENT-V1.eyJ0ZW5hbnRJZCI6...abc1234"
                 rows={4}
-                className="w-full p-3 bg-black/40 border border-white/[0.08] rounded-xl text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599] transition-all resize-none"
+                className="w-full p-3 bg-surface border border-border rounded-md text-xs font-mono text-primary placeholder-muted focus:outline-none focus:border-border-strong transition-all resize-none shadow-xs"
               />
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowLicenseModal(false)}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-xl border border-white/[0.06] cursor-pointer"
+                  className="px-4 py-2 bg-surface hover:bg-secondary text-secondary text-xs font-medium rounded-md border border-border cursor-pointer shadow-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={licenseActivating || !licenseInput.trim()}
-                  className="px-4 py-2 bg-[#00E599] hover:bg-[#00c885] text-black text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md shadow-[#00E599]/10 flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-4 py-2 bg-action-primary hover:bg-action-primary-hover text-action-primary-text text-xs font-medium rounded-md transition-all cursor-pointer shadow-xs flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {licenseActivating ? 'Verifying HMAC...' : 'Activate License'}
                 </button>

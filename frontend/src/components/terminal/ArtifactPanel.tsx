@@ -53,55 +53,23 @@ export default function ArtifactPanel({ artifact, onClose }: ArtifactPanelProps)
   const isImage = artifact.type === 'screenshot' || artifact.type === 'image' || artifact.name.endsWith('.png') || artifact.name.endsWith('.jpg') || artifact.name.endsWith('.jpeg')
 
   return (
-    <div className="artifact-panel h-full bg-[var(--color-surface)] border-l border-white/[0.06] flex flex-col animate-in slide-in-from-right duration-300">
-      <style>{`
-        @media (max-width: 768px) {
-          .artifact-panel {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 60vh !important;
-            border-left: none !important;
-            border-top: 1px solid rgba(255,255,255,0.06) !important;
-            border-top-left-radius: 1rem !important;
-            border-top-right-radius: 1rem !important;
-            z-index: 100 !important;
-            transform: translateY(0) !important;
-            animation: slideUp 300ms ease-out forwards !important;
-          }
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-          }
-        }
-      `}</style>
-      
-      {/* Mobile Drag Handle */}
-      <div 
-        className="hidden max-md:flex justify-center py-2 shrink-0 cursor-pointer hover:bg-white/[0.02] border-b border-white/[0.03]" 
-        onClick={onClose}
-        title="Dismiss panel"
-      >
-        <div className="w-12 h-1 bg-zinc-700 rounded-full" />
-      </div>
-
+    <div className="artifact-panel h-full bg-surface border-l border-border flex flex-col shadow-lg animate-in slide-in-from-right duration-200">
       {/* Panel Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-subtle/50">
         <div className="flex items-center gap-2">
-          <FileText className="text-[var(--color-accent)]" size={16} />
-          <h4 className="text-[12px] font-bold text-white truncate max-w-[200px]" title={artifact.name}>
+          <FileText className="text-secondary" size={16} />
+          <h4 className="text-xs font-semibold text-primary truncate max-w-[200px]" title={artifact.name}>
             {artifact.name}
           </h4>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {artifact.downloadUrl && (
             <a
               href={artifact.downloadUrl}
               download
               title={TERMINAL_STRINGS.download}
-              className="p-1.5 hover:bg-white/5 border border-white/[0.04] hover:border-white/[0.08] rounded-lg text-zinc-400 hover:text-white transition-all"
+              className="p-1.5 hover:bg-secondary border border-border rounded-md text-secondary hover:text-primary transition-all"
             >
               <Download size={14} />
             </a>
@@ -112,14 +80,14 @@ export default function ArtifactPanel({ artifact, onClose }: ArtifactPanelProps)
               target="_blank"
               rel="noopener noreferrer"
               title={TERMINAL_STRINGS.openInNewTab}
-              className="p-1.5 hover:bg-white/5 border border-white/[0.04] hover:border-white/[0.08] rounded-lg text-zinc-400 hover:text-white transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2"
+              className="p-1.5 hover:bg-secondary border border-border rounded-md text-secondary hover:text-primary transition-all flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2"
             >
               <ExternalLink size={11} />
             </a>
           )}
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-white/5 border border-transparent rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer"
+            className="p-1.5 hover:bg-secondary border border-transparent rounded-md text-secondary hover:text-primary transition-all cursor-pointer"
           >
             <X size={15} />
           </button>
@@ -127,11 +95,11 @@ export default function ArtifactPanel({ artifact, onClose }: ArtifactPanelProps)
       </div>
 
       {/* Renderers content area */}
-      <div className="flex-1 overflow-auto p-5 custom-scrollbar min-h-0 bg-[var(--color-bg)]">
+      <div className="flex-1 overflow-auto p-5 custom-scrollbar min-h-0 bg-background">
         
         {/* Sandboxed HTML Frame */}
         {isHtml && (
-          <div className="w-full h-full border border-white/[0.06] rounded-xl overflow-hidden bg-white">
+          <div className="w-full h-full border border-border rounded-lg overflow-hidden bg-white shadow-xs">
             <iframe
               srcDoc={artifact.content}
               title={artifact.name}
@@ -143,22 +111,22 @@ export default function ArtifactPanel({ artifact, onClose }: ArtifactPanelProps)
 
         {/* CSV Render Table */}
         {isCsv && csvRows.length > 0 && (
-          <div className="w-full border border-white/[0.06] rounded-xl overflow-hidden bg-[var(--color-surface)] max-h-full overflow-auto custom-scrollbar">
-            <table className="w-full border-collapse text-left text-[11px] text-zinc-300">
-              <thead className="bg-[var(--color-surface)] text-white font-bold sticky top-0 border-b border-white/[0.06]">
+          <div className="w-full border border-border rounded-lg overflow-hidden bg-surface max-h-full overflow-auto custom-scrollbar shadow-xs">
+            <table className="w-full border-collapse text-left text-xs text-primary">
+              <thead className="bg-subtle text-primary font-semibold sticky top-0 border-b border-border">
                 <tr>
                   {csvRows[0].map((header, idx) => (
-                    <th key={idx} className="p-3 border-r border-white/[0.04] font-black tracking-wider uppercase text-[9px]">
+                    <th key={idx} className="p-2.5 border-r border-border text-[11px] font-semibold uppercase tracking-wider">
                       {header}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.03]">
+              <tbody className="divide-y divide-border">
                 {csvRows.slice(1).map((row, rIdx) => (
-                  <tr key={rIdx} className="hover:bg-white/[0.01]">
+                  <tr key={rIdx} className="hover:bg-subtle/50">
                     {row.map((cell, cIdx) => (
-                      <td key={cIdx} className="p-3 border-r border-white/[0.03]">
+                      <td key={cIdx} className="p-2.5 border-r border-border">
                         {cell}
                       </td>
                     ))}
@@ -171,27 +139,27 @@ export default function ArtifactPanel({ artifact, onClose }: ArtifactPanelProps)
 
         {/* Image / Screenshot Viewer */}
         {isImage && (
-          <div className="w-full h-full flex items-center justify-center border border-white/[0.06] rounded-xl overflow-hidden bg-[var(--color-surface)] p-2">
+          <div className="w-full h-full flex items-center justify-center border border-border rounded-lg overflow-hidden bg-surface p-2 shadow-xs">
             <img
               src={artifact.content}
               alt={artifact.name}
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              className="max-w-full max-h-full object-contain rounded-md"
             />
           </div>
         )}
 
         {/* Code / Text Viewer */}
         {!isHtml && !isCsv && !isImage && (
-          <div className="relative border border-white/[0.06] rounded-xl bg-[var(--color-surface)] p-4.5 font-mono text-[11px] text-zinc-300 overflow-auto leading-relaxed custom-scrollbar">
+          <div className="relative border border-border rounded-lg bg-surface p-4 font-mono text-xs text-primary overflow-auto leading-relaxed custom-scrollbar shadow-xs">
             {artifact.content && (
               <button
                 onClick={handleCopy}
-                className="absolute top-3 right-3 p-1.5 bg-[var(--color-surface)] hover:bg-zinc-800 border border-white/[0.06] rounded-lg text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 cursor-pointer"
+                className="absolute top-3 right-3 p-1.5 bg-secondary hover:bg-subtle border border-border rounded-md text-primary transition-all flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 cursor-pointer shadow-xs"
               >
                 {copied ? (
                   <>
-                    <Check size={11} className="text-[var(--color-success)]" />
-                    <span className="text-[var(--color-success)]">{TERMINAL_STRINGS.copied}</span>
+                    <Check size={11} className="text-emerald-700" />
+                    <span className="text-emerald-800">{TERMINAL_STRINGS.copied}</span>
                   </>
                 ) : (
                   <>

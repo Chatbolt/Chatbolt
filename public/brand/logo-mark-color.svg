@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!--
+    Chatbolt Logo Mark — Brand Color Version
+    Primary color: #534AB7 (indigo-violet, pulled directly from the product's active/CTA color)
+    Secondary color: #00DFB8 (teal-mint, used for status signals and CLI prompt in the product)
+    
+    The center column uses the primary brand color to mark the orchestrating gateway.
+    The side columns and baseline use a slightly desaturated version.
+    This creates a subtle hierarchy in the brand color version without resorting to gradients.
+  -->
+
+  <!-- Left column — side tier, slightly muted brand color -->
+  <rect x="6" y="18" width="10" height="20" fill="#7C74CC"/>
+
+  <!-- Center column — orchestrator tier, full primary brand color -->
+  <rect x="19" y="10" width="10" height="28" fill="#534AB7"/>
+
+  <!-- Right column — side tier, slightly muted brand color -->
+  <rect x="32" y="18" width="10" height="20" fill="#7C74CC"/>
+
+  <!-- Baseline — accent teal for the foundation/grounding element -->
+  <rect x="6" y="40" width="36" height="2" fill="#00DFB8"/>
+</svg>

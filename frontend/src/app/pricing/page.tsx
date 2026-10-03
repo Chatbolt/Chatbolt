@@ -90,13 +90,13 @@ export default function PricingPage() {
 
         {/* Pricing Cards Grid (4 columns) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
-          {/* Free */}
+          {/* Free BYOK */}
           <div className="bg-[#F9F9FB] border border-zinc-200/80 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div className="space-y-6">
               <div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Free Tier</span>
-                <h3 className="text-2xl font-serif font-bold text-zinc-900 mt-2">Free</h3>
-                <p className="text-[11px] text-zinc-500 mt-1 font-semibold leading-normal">Enough to experience the product, not to depend on it.</p>
+                <span className="text-[9px] font-black uppercase tracking-widest text-[#534AB7] bg-[#534AB7]/10 px-2 py-0.5 rounded-full">Community & BYOK</span>
+                <h3 className="text-2xl font-serif font-bold text-zinc-900 mt-2">$0 <span className="text-xs text-zinc-500 font-sans font-medium">/ forever</span></h3>
+                <p className="text-[11px] text-zinc-500 mt-1 font-semibold leading-normal">Run full autonomous agent teams with your own API key at raw provider cost.</p>
               </div>
 
               <div className="w-full h-[1px] bg-zinc-200/60" />
@@ -104,22 +104,23 @@ export default function PricingPage() {
               <ul className="space-y-3 text-xs text-zinc-650 font-medium">
                 <li className="flex items-center gap-2">
                   <Check size={13} className="text-[#00E599]" />
-                  <span>20 tasks per month</span>
+                  <span><strong>100 tasks / mo</strong> (Unlimited self-hosted)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={13} className="text-[#00E599]" />
-                  <span>2 active integrations</span>
+                  <span><strong>Bring-Your-Own-Key</strong> (OpenAI, Claude, etc.)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={13} className="text-[#00E599]" />
-                  <span>1 team member limit</span>
+                  <span>All 4 Agent Team Templates</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check size={13} className="text-[#00E599]" />
-                  <span>2 automations limit</span>
+                  <span>Full Autonomy & Approval Controls</span>
                 </li>
-                <li className="flex items-center gap-2 text-zinc-400 line-through">
-                  <span>API access</span>
+                <li className="flex items-center gap-2">
+                  <Check size={13} className="text-[#00E599]" />
+                  <span>AES-256 Vault Encryption</span>
                 </li>
               </ul>
             </div>
@@ -127,9 +128,9 @@ export default function PricingPage() {
             <button
               onClick={() => handleSelectPlan('free')}
               disabled={loading}
-              className="w-full py-2.5 mt-8 bg-zinc-100 text-zinc-800 font-bold uppercase text-[9px] tracking-widest rounded-xl hover:bg-zinc-200 transition-colors cursor-pointer border border-zinc-200"
+              className="w-full py-2.5 mt-8 bg-zinc-900 text-white font-bold uppercase text-[9px] tracking-widest rounded-xl hover:bg-zinc-800 transition-colors cursor-pointer border border-zinc-900 shadow-sm"
             >
-              Get started free
+              Start Free with BYOK
             </button>
           </div>
 

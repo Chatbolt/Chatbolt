@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
-import { Clock, Copy, Download, CheckCircle2, XCircle, Terminal } from 'lucide-react'
+import { Clock, Copy, CheckCircle2, Terminal } from 'lucide-react'
 
 interface LogEntry { id: string; timestamp: string; type: string; message: string }
 
@@ -15,9 +15,9 @@ interface OutputPanelProps {
 }
 
 const LOG_COLORS: Record<string, string> = {
-  agent_start: '#A1A1AA', agent_done: '#00E599', agent_error: '#EF4444',
-  workflow_start: '#00E599', workflow_done: '#00E599', workflow_error: '#EF4444',
-  info: '#71717A', success: '#00E599', error: '#EF4444',
+  agent_start: '#4B5563', agent_done: '#047857', agent_error: '#B91C1C',
+  workflow_start: '#0F172A', workflow_done: '#047857', workflow_error: '#B91C1C',
+  info: '#6B7280', success: '#047857', error: '#B91C1C',
 }
 
 const LOG_PREFIXES: Record<string, string> = {
@@ -63,7 +63,7 @@ export function OutputPanel({ logs, agents, agentSteps, runStatus, runDuration, 
 
   useEffect(() => {
     if (runStatus === 'running' || runStatus === 'error') setTab('log')
-    if (runStatus === 'complete') setTimeout(() => setTab('output'), 1200)
+    if (runStatus === 'complete') setTimeout(() => setTab('output'), 1000)
   }, [runStatus])
 
   useEffect(() => {
@@ -86,17 +86,22 @@ export function OutputPanel({ logs, agents, agentSteps, runStatus, runDuration, 
   ] as const
 
   return (
-    <div className="w-[300px] bg-[#09090B] border-l border-white/[0.04] flex flex-col shrink-0 h-full text-white">
+    <div className="w-80 bg-surface border-l border-border flex flex-col shrink-0 h-full text-primary shadow-xs">
       {/* Tabs */}
-      <div className="flex border-b border-white/[0.04] shrink-0 bg-white/[0.01]">
+      <div className="flex border-b border-border shrink-0 bg-surface">
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all relative ${tab === t.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
+          <button 
+            key={t.id} 
+            onClick={() => setTab(t.id)}
+            className={`flex-1 py-2.5 text-xs font-medium transition-all relative cursor-pointer ${
+              tab === t.id ? 'text-primary font-semibold' : 'text-muted hover:text-primary hover:bg-secondary/40'
+            }`}
+          >
             {t.label}
             {t.id === 'log' && (t as any).badge && (
-              <span className="ml-1 w-1.5 h-1.5 bg-[#00E599] rounded-full inline-block animate-pulse shadow-[0_0_6px_#00E599]" />
+              <span className="ml-1 w-1.5 h-1.5 bg-emerald-600 rounded-full inline-block animate-pulse" />
             )}
-            {tab === t.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00E599]" />}
+            {tab === t.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-action-primary" />}
           </button>
         ))}
       </div>
@@ -104,56 +109,56 @@ export function OutputPanel({ logs, agents, agentSteps, runStatus, runDuration, 
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {/* OUTPUT TAB */}
         {tab === 'output' && (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {runStatus === 'idle' && logs.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-40 text-center">
-                <Clock size={24} className="text-zinc-800 mb-3" />
-                <div className="text-[11px] font-medium text-zinc-500">Run workflow to see output</div>
+              <div className="flex flex-col items-center justify-center h-40 text-center text-muted">
+                <Clock size={20} className="mb-2 text-muted" />
+                <div className="text-xs font-medium text-secondary">Execute pipeline to stream outputs</div>
               </div>
             )}
 
-            {agents.map((agent, i) => {
+            {agents.map((agent) => {
               const step = agentSteps[agent.id] || {}
               const isRunning = step.status === 'running'
               const isDone = step.status === 'completed'
               const isWaiting = !step.status && runStatus === 'running'
               return (
-                <div key={agent.id} className="border border-white/[0.06] rounded-xl overflow-hidden bg-[#0D0D11]/60">
-                  <div className={`flex items-center justify-between px-3 py-2 ${isDone ? 'bg-[#00E599]/5' : isRunning ? 'bg-[#00E599]/10 animate-pulse' : 'bg-white/[0.01]'}`}>
-                    <div className="flex items-center gap-2">
-                      {isDone && <CheckCircle2 size={12} className="text-[#00E599]" />}
-                      {isRunning && <div className="w-2 h-2 bg-[#00E599] rounded-full animate-pulse shadow-[0_0_6px_#00E599]" />}
-                      {isWaiting && <div className="w-2 h-2 bg-amber-400 rounded-full" />}
-                      {!isDone && !isRunning && !isWaiting && <div className="w-2 h-2 bg-zinc-700 rounded-full" />}
-                      <span className="text-[10px] font-bold text-white">{agent.name}</span>
+                <div key={agent.id} className="border border-border rounded-lg overflow-hidden bg-surface shadow-xs">
+                  <div className={`flex items-center justify-between px-3 py-2 border-b border-border ${
+                    isDone ? 'bg-emerald-50/50' : isRunning ? 'bg-sky-50' : 'bg-secondary/30'
+                  }`}>
+                    <div className="flex items-center gap-1.5">
+                      {isDone && <CheckCircle2 size={12} className="text-emerald-700" />}
+                      {isRunning && <div className="w-2 h-2 bg-sky-600 rounded-full animate-pulse" />}
+                      {isWaiting && <div className="w-2 h-2 bg-amber-500 rounded-full" />}
+                      {!isDone && !isRunning && !isWaiting && <div className="w-2 h-2 bg-gray-400 rounded-full" />}
+                      <span className="text-xs font-semibold text-primary">{agent.name}</span>
                     </div>
                     {step.duration_ms && (
-                      <span className="text-[9px] text-zinc-500">{(step.duration_ms / 1000).toFixed(1)}s</span>
+                      <span className="text-[10px] font-mono text-muted">{(step.duration_ms / 1000).toFixed(1)}s</span>
                     )}
                   </div>
-                  <div className="px-3 py-2 border-t border-white/[0.04]">
-                    {isRunning && !step.screenshot && <div className="text-[10px] text-zinc-500 animate-pulse">Generating output...</div>}
-                    {isWaiting && <div className="text-[10px] text-zinc-600 text-slate-400">Waiting for previous agent...</div>}
+                  <div className="p-3 bg-surface">
+                    {isRunning && !step.screenshot && <div className="text-xs text-muted animate-pulse">Running task...</div>}
+                    {isWaiting && <div className="text-xs text-muted">Waiting on upstream node...</div>}
                     {isDone && step.outputSummary && (
-                      <p className="text-[10px] text-zinc-300 leading-relaxed whitespace-pre-wrap">{step.outputSummary}</p>
+                      <p className="text-xs text-secondary leading-relaxed whitespace-pre-wrap">{step.outputSummary}</p>
                     )}
                     {!isDone && !isRunning && !isWaiting && (
-                      <div className="text-[10px] text-zinc-600">Not yet run</div>
+                      <div className="text-xs text-muted">Not yet executed</div>
                     )}
-                    {/* Live Sandbox View (Manus-Style Visual Browser Stream) */}
                     {(isRunning || isDone) && step.screenshot && (
-                      <div className="mt-2 border border-white/[0.06] rounded-lg overflow-hidden bg-black/60 shadow-inner">
-                        <div className="px-2 py-1 bg-white/[0.02] text-[8px] font-black uppercase text-zinc-500 flex justify-between items-center select-none">
+                      <div className="mt-2 border border-border rounded-md overflow-hidden bg-secondary shadow-xs">
+                        <div className="px-2 py-1 bg-surface border-b border-border text-[10px] text-muted flex justify-between items-center select-none font-mono">
                           <span className="flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 bg-[#00E599] rounded-full inline-block animate-ping" />
+                            <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full inline-block animate-ping" />
                             Live Sandbox Screen
                           </span>
-                          <span className="text-[7px] text-zinc-600 font-mono">playwright-vnc</span>
                         </div>
                         <img 
                           src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${step.screenshot}`} 
                           alt="Live Sandbox Screen" 
-                          className="w-full h-auto max-h-[160px] object-cover hover:object-contain transition-all duration-300 cursor-crosshair active:scale-[0.98] select-none"
+                          className="w-full h-auto max-h-40 object-cover cursor-crosshair select-none"
                           onClick={(e) => {
                             if (workflowId && runId) {
                               handleSandboxClick(e, workflowId, runId)
@@ -168,18 +173,18 @@ export function OutputPanel({ logs, agents, agentSteps, runStatus, runDuration, 
             })}
 
             {runStatus === 'complete' && (
-              <>
-                <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
-                  <div className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">
-                    {runDuration ? `${(runDuration / 1000).toFixed(0)}s · ${agents.length}/${agents.length} agents` : `${agents.length} agents complete`}
-                  </div>
-                  <button onClick={copyOutput}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] rounded-lg text-[9px] font-bold text-zinc-300 hover:bg-white/10 hover:text-white transition-all">
-                    {copied ? <CheckCircle2 size={10} className="text-[#00E599]" /> : <Copy size={10} />}
-                    {copied ? 'Copied' : 'Copy Output'}
-                  </button>
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="text-[10px] text-muted font-mono">
+                  {runDuration ? `${(runDuration / 1000).toFixed(0)}s · ${agents.length}/${agents.length} nodes` : `${agents.length} nodes complete`}
                 </div>
-              </>
+                <button 
+                  onClick={copyOutput}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-surface border border-border rounded text-xs font-medium text-secondary hover:text-primary hover:bg-secondary transition-all cursor-pointer shadow-xs"
+                >
+                  {copied ? <CheckCircle2 size={11} className="text-emerald-700" /> : <Copy size={11} />}
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -188,44 +193,43 @@ export function OutputPanel({ logs, agents, agentSteps, runStatus, runDuration, 
         {tab === 'log' && (
           <div className="flex-1 flex flex-col min-h-0 p-3">
             <div className="flex items-center justify-between mb-2 shrink-0">
-              <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                <Terminal size={10} /> Live Execution Terminal
+              <div className="flex items-center gap-1 text-xs font-semibold text-secondary">
+                <Terminal size={12} /> Execution Log
               </div>
-              <button onClick={() => setAutoScroll(!autoScroll)}
-                className={`text-[9px] font-bold px-2 py-0.5 rounded border transition-all ${autoScroll ? 'bg-[#00E599] text-black border-[#00E599] hover:bg-[#00cc88]' : 'border-white/10 text-zinc-500'}`}>
+              <button 
+                onClick={() => setAutoScroll(!autoScroll)}
+                className={`text-[10px] font-medium px-2 py-0.5 rounded border transition-all cursor-pointer ${
+                  autoScroll ? 'bg-action-primary text-action-primary-text border-transparent' : 'border-border text-muted bg-surface'
+                }`}
+              >
                 Auto-scroll
               </button>
             </div>
-            <div ref={logRef} className="flex-1 bg-[#030305] border border-white/[0.05] rounded-xl p-3 overflow-y-auto font-mono text-[10px] space-y-1 custom-scrollbar shadow-inner">
+            <div ref={logRef} className="flex-1 bg-surface border border-border rounded-lg p-2.5 overflow-y-auto font-mono text-[11px] space-y-1 shadow-xs">
               {logs.length === 0 && (
-                <div className="text-zinc-700">Waiting for execution...</div>
+                <div className="text-muted">Awaiting pipeline execution...</div>
               )}
               {logs.map(log => {
-                const color = LOG_COLORS[log.type] || '#71717A'
+                const color = LOG_COLORS[log.type] || '#4B5563'
                 const prefix = LOG_PREFIXES[log.type] || '·'
                 return (
-                  <div key={log.id} className="flex gap-2">
-                    <span className="text-zinc-600 shrink-0">[{log.timestamp}]</span>
-                    <span style={{ color }} className="shrink-0">{prefix}</span>
-                    <span className="text-zinc-300 break-all">{log.message}</span>
+                  <div key={log.id} className="flex gap-1.5 leading-tight">
+                    <span className="text-muted shrink-0">[{log.timestamp}]</span>
+                    <span style={{ color }} className="shrink-0 font-bold">{prefix}</span>
+                    <span className="text-secondary break-all">{log.message}</span>
                   </div>
                 )
               })}
-              {runStatus === 'running' && (
-                <div className="flex gap-2 text-[#00E599]">
-                  <span className="animate-pulse">▌</span>
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {/* HISTORY TAB */}
         {tab === 'history' && (
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="text-center py-12">
-              <Clock size={24} className="text-zinc-800 mx-auto mb-3" />
-              <div className="text-[11px] font-medium text-zinc-500">Run history appears here</div>
+          <div className="flex-1 overflow-y-auto p-4 text-center text-muted">
+            <div className="py-12">
+              <Clock size={20} className="mx-auto mb-2 text-muted" />
+              <div className="text-xs text-secondary">Execution history will be stored here</div>
             </div>
           </div>
         )}

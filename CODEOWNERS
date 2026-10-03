@@ -1,0 +1,49 @@
+# CODEOWNERS
+# Each line maps a file or path pattern to one or more GitHub usernames or team handles.
+# The listed owners are automatically requested for review on any PR that touches
+# matching files.
+#
+# Syntax reference:
+#   https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner — catches anything not matched by a more specific rule below.
+*                                 @AbhinavKatare
+
+# ---- License, governance, and legal ----------------------------------------
+LICENSE                           @AbhinavKatare
+TRADEMARK.md                      @AbhinavKatare
+GOVERNANCE.md                     @AbhinavKatare
+CONTRIBUTING.md                   @AbhinavKatare
+CODE_OF_CONDUCT.md                @AbhinavKatare
+SECURITY.md                       @AbhinavKatare
+NOTICE                            @AbhinavKatare
+
+# ---- Enterprise / commercial module -----------------------------------------
+# Changes here affect proprietary capabilities and commercial licensing.
+enterprise/                       @AbhinavKatare
+
+# ---- Core platform (BUSL-1.1 boundary) --------------------------------------
+# Any movement of code across the core/enterprise boundary needs explicit sign-off.
+core/                             @AbhinavKatare
+
+# ---- Security-sensitive infrastructure --------------------------------------
+# Auth middleware, vault, and inter-service secret handling require extra scrutiny.
+chatai-backend/src/middleware/    @AbhinavKatare
+chatai-backend/src/services/vault*.ts  @AbhinavKatare
+
+# ---- Go agent runtime (sandboxing and concurrency) --------------------------
+agent-runtime/                    @AbhinavKatare
+
+# ---- Python reasoning brain -------------------------------------------------
+agent-brain/                      @AbhinavKatare
+
+# ---- CI/CD and deployment ---------------------------------------------------
+.github/                          @AbhinavKatare
+docker-compose.yml                @AbhinavKatare
+**/Dockerfile                     @AbhinavKatare
+
+# ---- Database migrations ----------------------------------------------------
+chatai-backend/src/migrations/    @AbhinavKatare
+
+# ---- Frontend ---------------------------------------------------------------
+frontend/                         @AbhinavKatare

@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Award,
   Activity,
+  ArrowUpRight
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
@@ -75,10 +76,10 @@ function formatRelativeTime(dateStr: string | null) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-function successRateColor(rate: number) {
-  if (rate >= 90) return 'bg-[#00E599]/20 text-[#00E599]'
-  if (rate >= 70) return 'bg-yellow-500/20 text-yellow-400'
-  return 'bg-red-500/20 text-red-400'
+function successRateBadge(rate: number) {
+  if (rate >= 90) return 'bg-emerald-50 text-emerald-800 border-emerald-200'
+  if (rate >= 70) return 'bg-amber-50 text-amber-800 border-amber-200'
+  return 'bg-rose-50 text-rose-800 border-rose-200'
 }
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
@@ -93,14 +94,16 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value, sub, accent }: StatCardProps) {
   return (
-    <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 flex flex-col gap-3 hover:border-zinc-700 transition-colors">
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${accent ? 'bg-[#00E599]/15 text-[#00E599]' : 'bg-zinc-800 text-zinc-400'}`}>
-        {icon}
+    <div className="bg-surface border border-border rounded-lg p-5 flex flex-col justify-between shadow-xs">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted">{label}</span>
+        <div className="w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center text-primary">
+          {icon}
+        </div>
       </div>
-      <div>
-        <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-        <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
-        {sub && <p className="text-xs text-zinc-600 mt-1">{sub}</p>}
+      <div className="mt-3">
+        <p className="text-2xl font-bold font-mono text-primary tracking-tight">{value}</p>
+        {sub && <p className="text-[11px] text-muted mt-0.5">{sub}</p>}
       </div>
     </div>
   )
@@ -111,8 +114,8 @@ function StatCard({ icon, label, value, sub, accent }: StatCardProps) {
 function DailyActivityChart({ data }: { data: DailyTask[] }) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 text-zinc-600 text-sm">
-        No task data for this period
+      <div className="flex items-center justify-center h-40 text-muted text-xs">
+        No task activity recorded for this period
       </div>
     )
   }
@@ -121,52 +124,50 @@ function DailyActivityChart({ data }: { data: DailyTask[] }) {
   const recent = data.slice(-30)
 
   return (
-    <div className="w-full">
-      <div className="flex items-end gap-1 h-40 w-full overflow-x-auto pb-2">
+    <div className="w-full space-y-3">
+      <div className="flex items-end gap-1.5 h-44 w-full overflow-x-auto pb-2 pt-4 border-b border-border">
         {recent.map((d, i) => {
           const total = Number(d.count) || 0
           const completed = Number(d.completed) || 0
           const failed = Number(d.failed) || 0
           const other = Math.max(0, total - completed - failed)
-          const heightPct = total === 0 ? 0 : Math.max(4, (total / maxCount) * 100)
+          const heightPct = total === 0 ? 0 : Math.max(6, (total / maxCount) * 100)
 
           return (
             <div
               key={i}
-              className="flex flex-col items-center gap-1 flex-1 min-w-[18px] group cursor-default relative"
-              title={`${formatDate(d.date)}: ${completed} completed, ${failed} failed`}
+              className="flex flex-col items-center gap-1 flex-1 min-w-[16px] group cursor-default relative h-full justify-end"
             >
               {/* Tooltip */}
-              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-10 hidden group-hover:flex flex-col items-center pointer-events-none">
-                <div className="bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap shadow-xl">
-                  <p className="text-white font-medium">{formatDate(d.date)}</p>
-                  <p className="text-[#00E599]">✓ {completed} completed</p>
-                  {failed > 0 && <p className="text-red-400">✗ {failed} failed</p>}
-                  {other > 0 && <p className="text-zinc-400">~ {other} other</p>}
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 hidden group-hover:flex flex-col items-center pointer-events-none">
+                <div className="bg-surface border border-border-strong rounded-md px-3 py-2 text-xs whitespace-nowrap shadow-md">
+                  <p className="text-primary font-semibold font-mono">{formatDate(d.date)}</p>
+                  <p className="text-emerald-700 font-medium">✓ {completed} completed</p>
+                  {failed > 0 && <p className="text-rose-700 font-medium">✗ {failed} failed</p>}
+                  {other > 0 && <p className="text-muted">~ {other} in progress</p>}
                 </div>
-                <div className="w-1.5 h-1.5 bg-zinc-800 border-r border-b border-zinc-700 rotate-45 -mt-1" />
               </div>
 
               {/* Bar stack */}
               <div
-                className="w-full rounded-t-sm overflow-hidden flex flex-col-reverse"
+                className="w-full rounded-t-sm overflow-hidden flex flex-col-reverse bg-gray-100 border border-border/40"
                 style={{ height: `${heightPct}%` }}
               >
                 {failed > 0 && (
                   <div
-                    className="w-full bg-red-500/60 shrink-0"
+                    className="w-full bg-rose-500 shrink-0"
                     style={{ height: `${(failed / total) * 100}%` }}
                   />
                 )}
                 {other > 0 && (
                   <div
-                    className="w-full bg-zinc-600 shrink-0"
+                    className="w-full bg-gray-400 shrink-0"
                     style={{ height: `${(other / total) * 100}%` }}
                   />
                 )}
                 {completed > 0 && (
                   <div
-                    className="w-full bg-[#00E599] shrink-0"
+                    className="w-full bg-emerald-600 shrink-0"
                     style={{ height: `${(completed / total) * 100}%` }}
                   />
                 )}
@@ -176,12 +177,12 @@ function DailyActivityChart({ data }: { data: DailyTask[] }) {
         })}
       </div>
 
-      {/* X-axis labels — show every ~5th label */}
-      <div className="flex gap-1 w-full overflow-x-auto">
+      {/* X-axis labels */}
+      <div className="flex gap-1.5 w-full overflow-x-auto">
         {recent.map((d, i) => (
-          <div key={i} className="flex-1 min-w-[18px] text-center">
+          <div key={i} className="flex-1 min-w-[16px] text-center">
             {i % Math.max(1, Math.floor(recent.length / 6)) === 0 && (
-              <span className="text-[9px] text-zinc-600 leading-none">
+              <span className="text-[10px] text-muted font-mono leading-none">
                 {formatDate(d.date)}
               </span>
             )}
@@ -190,18 +191,18 @@ function DailyActivityChart({ data }: { data: DailyTask[] }) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mt-3">
+      <div className="flex items-center gap-4 pt-1 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-[#00E599]" />
-          <span className="text-xs text-zinc-500">Completed</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-emerald-600" />
+          <span className="text-secondary">Completed</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-red-500/60" />
-          <span className="text-xs text-zinc-500">Failed</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-rose-500" />
+          <span className="text-secondary">Failed</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-zinc-600" />
-          <span className="text-xs text-zinc-500">In Progress</span>
+          <div className="w-2.5 h-2.5 rounded-sm bg-gray-400" />
+          <span className="text-secondary">In Progress</span>
         </div>
       </div>
     </div>
@@ -212,7 +213,7 @@ function DailyActivityChart({ data }: { data: DailyTask[] }) {
 
 function TopCategoriesChart({ data }: { data: TopCategory[] }) {
   if (!data || data.length === 0) {
-    return <p className="text-zinc-600 text-sm py-4 text-center">No category data yet</p>
+    return <p className="text-muted text-xs py-4 text-center">No category data recorded yet</p>
   }
   const maxCount = Math.max(...data.map(d => Number(d.count) || 0), 1)
   return (
@@ -222,16 +223,16 @@ function TopCategoriesChart({ data }: { data: TopCategory[] }) {
         const pct = Math.round((count / maxCount) * 100)
         return (
           <div key={i} className="flex items-center gap-3">
-            <span className="text-xs text-zinc-400 w-28 truncate capitalize">
-              {cat.category || 'Unknown'}
+            <span className="text-xs text-secondary font-medium w-28 truncate capitalize">
+              {cat.category || 'Standard task'}
             </span>
-            <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
+            <div className="flex-1 bg-gray-100 border border-border/40 rounded-full h-2 overflow-hidden">
               <div
-                className="h-full bg-[#00E599] rounded-full transition-all duration-700"
+                className="h-full bg-action-primary rounded-full transition-all duration-500"
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className="text-xs text-zinc-500 w-8 text-right">{count}</span>
+            <span className="text-xs font-mono font-semibold text-primary w-8 text-right">{count}</span>
           </div>
         )
       })}
@@ -242,8 +243,7 @@ function TopCategoriesChart({ data }: { data: TopCategory[] }) {
 // ── Stars Display ──────────────────────────────────────────────────────────────
 
 function StarRating({ value }: { value: number | null }) {
-  if (value === null) return <span className="text-zinc-500 text-sm">No ratings yet</span>
-  // value is between -1 and 1 (thumbs), convert to a 0–100 positive %
+  if (value === null) return <span className="text-muted text-xs">No feedback ratings recorded</span>
   const pct = Math.round(((value + 1) / 2) * 100)
   return (
     <div className="flex items-center gap-2">
@@ -251,11 +251,11 @@ function StarRating({ value }: { value: number | null }) {
         {[1, 2, 3, 4, 5].map(s => (
           <Star
             key={s}
-            className={`w-4 h-4 ${s <= Math.round((pct / 100) * 5) ? 'text-[#00E599] fill-[#00E599]' : 'text-zinc-700'}`}
+            className={`w-4 h-4 ${s <= Math.round((pct / 100) * 5) ? 'text-amber-500 fill-amber-500' : 'text-gray-300'}`}
           />
         ))}
       </div>
-      <span className="text-sm text-zinc-400">{pct}% positive</span>
+      <span className="text-xs font-mono font-medium text-secondary">{pct}% positive feedback</span>
     </div>
   )
 }
@@ -265,7 +265,6 @@ function StarRating({ value }: { value: number | null }) {
 function FeedbackWidget() {
   const [lastRun, setLastRun] = useState<any>(null)
   const [rated, setRated] = useState(false)
-  const [rating, setRating] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
 
@@ -280,11 +279,10 @@ function FeedbackWidget() {
     setSubmitting(true)
     try {
       await api.analytics.feedback(lastRun.id, r)
-      setRating(r)
       setRated(true)
-      toast({ title: 'Feedback recorded', message: 'Thanks for helping us improve!', type: 'success' })
+      toast({ title: 'Task evaluation saved', type: 'success' })
     } catch {
-      toast({ title: 'Could not submit feedback', type: 'error' })
+      toast({ title: 'Could not record feedback', type: 'error' })
     } finally {
       setSubmitting(false)
     }
@@ -293,40 +291,37 @@ function FeedbackWidget() {
   if (!lastRun) return null
 
   return (
-    <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-      <p className="text-sm text-zinc-400 mb-3 font-medium flex items-center gap-2">
-        <Award className="w-4 h-4 text-[#00E599]" />
-        Rate your last task
-      </p>
-      <div className="flex items-center justify-between gap-4">
+    <div className="bg-surface border border-border rounded-lg p-4 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm text-white font-medium truncate">
-            {lastRun.workflow?.name || lastRun.trigger || 'Untitled Task'}
+          <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+            <Award className="w-3.5 h-3.5 text-secondary" />
+            Rate Output Quality: <span className="font-normal text-secondary truncate">{lastRun.workflow?.name || lastRun.trigger || 'Recent Process'}</span>
           </p>
-          <p className="text-xs text-zinc-600 mt-0.5">{formatRelativeTime(lastRun.created_at)}</p>
+          <p className="text-[10px] text-muted font-mono mt-0.5">{formatRelativeTime(lastRun.created_at)}</p>
         </div>
         {rated ? (
-          <div className="flex items-center gap-2 text-[#00E599] text-sm font-medium shrink-0">
+          <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-medium shrink-0">
             <CheckCircle2 className="w-4 h-4" />
-            Feedback recorded
+            Feedback saved
           </div>
         ) : (
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => handleRate(1)}
               disabled={submitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-[#00E599]/20 hover:text-[#00E599] text-zinc-400 transition-colors text-xs font-medium border border-zinc-700 hover:border-[#00E599]/40 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1 rounded-md bg-surface hover:bg-secondary text-primary border border-border text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
             >
-              <ThumbsUp className="w-3.5 h-3.5" />
-              Good
+              <ThumbsUp className="w-3 h-3 text-emerald-700" />
+              Optimal
             </button>
             <button
               onClick={() => handleRate(-1)}
               disabled={submitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-red-500/20 hover:text-red-400 text-zinc-400 transition-colors text-xs font-medium border border-zinc-700 hover:border-red-500/40 disabled:opacity-50"
+              className="flex items-center gap-1 px-3 py-1 rounded-md bg-surface hover:bg-secondary text-secondary border border-border text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
             >
-              <ThumbsDown className="w-3.5 h-3.5" />
-              Poor
+              <ThumbsDown className="w-3 h-3 text-rose-700" />
+              Suboptimal
             </button>
           </div>
         )}
@@ -342,7 +337,7 @@ function PersonalTab({ data, loading }: { data: ProductivityData | null; loading
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 h-28 animate-pulse" />
+          <div key={i} className="bg-surface border border-border rounded-lg p-5 h-24 animate-pulse" />
         ))}
       </div>
     )
@@ -350,22 +345,16 @@ function PersonalTab({ data, loading }: { data: ProductivityData | null; loading
 
   if (!data || data.total_completed === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
-        <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500">
-          <BarChart2 className="w-8 h-8" />
+      <div className="flex flex-col items-center justify-center py-20 gap-3 text-center px-6 bg-surface border border-border rounded-lg shadow-xs">
+        <div className="w-12 h-12 rounded-lg bg-secondary border border-border flex items-center justify-center text-secondary">
+          <BarChart2 className="w-6 h-6" />
         </div>
         <div className="space-y-1">
-          <h2 className="text-lg font-bold text-white">No data yet</h2>
-          <p className="text-sm text-zinc-500 max-w-sm">
-            Complete a task to see your productivity stats.
+          <h2 className="text-sm font-semibold text-primary">No performance records found</h2>
+          <p className="text-xs text-muted max-w-sm">
+            Execute agent workflows and pipeline runs to populate real-time analytics.
           </p>
         </div>
-        <a
-          href="/dashboard/terminal"
-          className="px-5 py-2.5 bg-[#00E599] text-black text-xs font-black uppercase tracking-wider rounded-xl hover:bg-[#00E599]/90 active:scale-95 transition-all"
-        >
-          Go to Terminal →
-        </a>
       </div>
     )
   }
@@ -374,87 +363,78 @@ function PersonalTab({ data, loading }: { data: ProductivityData | null; loading
 
   return (
     <div className="space-y-6">
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          icon={<CheckCircle2 className="w-4 h-4" />}
+          icon={<CheckCircle2 className="w-4 h-4 text-emerald-700" />}
           label="Tasks Completed"
           value={data.total_completed}
-          sub="this period"
-          accent
+          sub="Total executions"
         />
         <StatCard
-          icon={<Clock className="w-4 h-4" />}
+          icon={<Clock className="w-4 h-4 text-primary" />}
           label="Hours Saved"
           value={`${data.time_saved_hours}h`}
-          sub="estimated"
-          accent
+          sub="Calculated automation ROI"
         />
         <StatCard
-          icon={<Calendar className="w-4 h-4" />}
+          icon={<Calendar className="w-4 h-4 text-secondary" />}
           label="Active Days"
           value={data.current_streak}
-          sub="days with tasks"
+          sub="Consecutive execution days"
         />
         <StatCard
-          icon={<Star className="w-4 h-4" />}
-          label="Quality Score"
+          icon={<Star className="w-4 h-4 text-amber-600" />}
+          label="Quality Accuracy"
           value={avgRating !== null ? `${Math.round(((avgRating + 1) / 2) * 100)}%` : 'N/A'}
-          sub={`${data.quality?.total_ratings || 0} ratings`}
+          sub={`${data.quality?.total_ratings || 0} user audits`}
         />
       </div>
 
-      {/* Daily activity chart */}
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-5">
+      {/* Daily Activity Chart */}
+      <div className="bg-surface border border-border rounded-lg p-5 shadow-xs">
+        <div className="flex items-center justify-between mb-3 border-b border-border pb-3">
           <div>
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#00E599]" />
-              Daily Task Activity
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Activity className="w-4 h-4 text-secondary" />
+              Daily Execution Throughput
             </h3>
-            <p className="text-xs text-zinc-600 mt-0.5">Completed vs failed per day</p>
+            <p className="text-xs text-muted">Completed vs failed runs per day</p>
           </div>
         </div>
         <DailyActivityChart data={data.daily_tasks} />
       </div>
 
-      {/* Bottom row: categories + quality */}
+      {/* Categories & Quality */}
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Top categories */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4 text-[#00E599]" />
-            Top Task Categories
+        <div className="bg-surface border border-border rounded-lg p-5 shadow-xs">
+          <h3 className="text-sm font-semibold text-primary flex items-center gap-2 mb-3 border-b border-border pb-2">
+            <Target className="w-4 h-4 text-secondary" />
+            Top Workflow Categories
           </h3>
           <TopCategoriesChart data={data.top_categories} />
         </div>
 
-        {/* Quality */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-            <Star className="w-4 h-4 text-[#00E599]" />
-            Output Quality
+        <div className="bg-surface border border-border rounded-lg p-5 shadow-xs">
+          <h3 className="text-sm font-semibold text-primary flex items-center gap-2 mb-3 border-b border-border pb-2">
+            <Star className="w-4 h-4 text-secondary" />
+            Evaluated Task Quality
           </h3>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <div>
-              <p className="text-3xl font-bold text-white mb-1">
-                {avgRating !== null
-                  ? `${Math.round(((avgRating + 1) / 2) * 100)}%`
-                  : '—'}
+              <p className="text-3xl font-bold font-mono text-primary mb-1">
+                {avgRating !== null ? `${Math.round(((avgRating + 1) / 2) * 100)}%` : '—'}
               </p>
               <StarRating value={avgRating} />
             </div>
-            <div className="pt-3 border-t border-zinc-800">
-              <p className="text-xs text-zinc-500">
-                Based on <span className="text-zinc-300">{data.quality?.total_ratings || 0}</span> feedback ratings.
-                Rate your tasks below to improve this score.
-              </p>
-            </div>
+            <p className="text-xs text-muted leading-relaxed">
+              Synthesized from {data.quality?.total_ratings || 0} human-in-the-loop evaluations.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Feedback widget */}
+      {/* Feedback Widget */}
       <FeedbackWidget />
     </div>
   )
@@ -471,9 +451,9 @@ function AutomationsTab({
 }) {
   if (loading) {
     return (
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 space-y-3">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-10 bg-zinc-800 rounded-lg animate-pulse" />
+      <div className="bg-surface border border-border rounded-lg p-6 space-y-3 shadow-xs animate-pulse">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-10 bg-secondary rounded-md" />
         ))}
       </div>
     )
@@ -481,78 +461,72 @@ function AutomationsTab({
 
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
         {data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <Zap className="w-10 h-10 text-zinc-700" />
-            <p className="text-zinc-500 text-sm font-medium">No automations yet</p>
-            <p className="text-zinc-600 text-xs text-center max-w-xs">
-              Build and run your first automation to see performance data here.
+          <div className="flex flex-col items-center justify-center py-16 gap-2 text-center text-muted">
+            <Zap className="w-8 h-8 text-muted" />
+            <p className="text-xs font-semibold text-primary">No automation performance metrics recorded</p>
+            <p className="text-xs text-muted max-w-xs">
+              Execute recurring schedules or event triggers to build performance benchmarks.
             </p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="px-5 py-3.5 text-left text-xs text-zinc-500 font-medium">Name</th>
-                <th className="px-5 py-3.5 text-left text-xs text-zinc-500 font-medium">Category</th>
-                <th className="px-5 py-3.5 text-right text-xs text-zinc-500 font-medium">Runs</th>
-                <th className="px-5 py-3.5 text-right text-xs text-zinc-500 font-medium">Success Rate</th>
-                <th className="px-5 py-3.5 text-right text-xs text-zinc-500 font-medium">Avg Duration</th>
-                <th className="px-5 py-3.5 text-right text-xs text-zinc-500 font-medium">Last Run</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((a, i) => {
-                const total = Number(a.total_runs) || 0
-                const success = Number(a.successful_runs) || 0
-                const rate = total > 0 ? Math.round((success / total) * 100) : 0
-                return (
-                  <tr
-                    key={a.id}
-                    className={`border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors ${
-                      i === data.length - 1 ? 'border-b-0' : ''
-                    }`}
-                  >
-                    <td className="px-5 py-3.5 text-white font-medium truncate max-w-[180px]">
-                      {a.name}
-                    </td>
-                    <td className="px-5 py-3.5 text-zinc-400 capitalize">
-                      {a.type || '—'}
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-zinc-300">{total}</td>
-                    <td className="px-5 py-3.5 text-right">
-                      {total === 0 ? (
-                        <span className="text-zinc-600 text-xs">—</span>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold ${successRateColor(rate)}`}
-                        >
-                          {rate}%
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-zinc-400">
-                      {formatDuration(a.avg_duration_ms)}
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-zinc-500 text-xs">
-                      {formatRelativeTime(a.last_run_at)}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-secondary/30">
+                  <th className="px-4 py-3 text-left font-semibold text-secondary">Automation Name</th>
+                  <th className="px-4 py-3 text-left font-semibold text-secondary">Trigger Type</th>
+                  <th className="px-4 py-3 text-right font-semibold text-secondary">Total Runs</th>
+                  <th className="px-4 py-3 text-right font-semibold text-secondary">Success Rate</th>
+                  <th className="px-4 py-3 text-right font-semibold text-secondary">Avg Latency</th>
+                  <th className="px-4 py-3 text-right font-semibold text-secondary">Last Invoked</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map(a => {
+                  const total = Number(a.total_runs) || 0
+                  const success = Number(a.successful_runs) || 0
+                  const rate = total > 0 ? Math.round((success / total) * 100) : 0
+                  return (
+                    <tr key={a.id} className="hover:bg-secondary/30 transition-colors">
+                      <td className="px-4 py-3 text-primary font-medium truncate max-w-xs">
+                        {a.name}
+                      </td>
+                      <td className="px-4 py-3 text-secondary capitalize font-mono">
+                        {a.type || 'Cron'}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-primary font-semibold">{total}</td>
+                      <td className="px-4 py-3 text-right">
+                        {total === 0 ? (
+                          <span className="text-muted font-mono">—</span>
+                        ) : (
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${successRateBadge(rate)}`}>
+                            {rate}%
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-muted">
+                        {formatDuration(a.avg_duration_ms)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-muted">
+                        {formatRelativeTime(a.last_run_at)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/* Feedback widget on automations tab too */}
       <FeedbackWidget />
     </div>
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Main Page ─────────────────────────────────────────────────────────────────
 
 type Tab = 'Personal' | 'Automations'
 
@@ -573,7 +547,7 @@ export default function AnalyticsPage() {
       const res = await api.analytics.productivity(days)
       setProductivityData(res)
     } catch {
-      toast({ title: 'Failed to load productivity data', type: 'error' })
+      toast({ title: 'Failed to load productivity metrics', type: 'error' })
     } finally {
       setLoadingProductivity(false)
     }
@@ -585,7 +559,7 @@ export default function AnalyticsPage() {
       const res = await api.analytics.automationPerformance()
       setAutomationsData(res.automations || [])
     } catch {
-      toast({ title: 'Failed to load automation data', type: 'error' })
+      toast({ title: 'Failed to load automation metrics', type: 'error' })
     } finally {
       setLoadingAutomations(false)
     }
@@ -595,31 +569,29 @@ export default function AnalyticsPage() {
   useEffect(() => { fetchAutomations() }, [fetchAutomations])
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-background text-primary">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <BarChart2 className="w-5 h-5 text-[#00E599]" />
-              Analytics &amp; Insights
-            </h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
-              Track your productivity, automation performance, and output quality
+            <span className="text-xs font-mono font-medium text-muted uppercase tracking-wider">Metrics & Performance</span>
+            <h1 className="text-2xl font-bold tracking-tight text-primary mt-1">Analytics & Operational Insights</h1>
+            <p className="text-xs text-secondary mt-1">
+              Real-time task throughput, automation success ratios, and quality scores.
             </p>
           </div>
 
-          {/* Days filter */}
-          <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1">
+          {/* Timeframe Filter */}
+          <div className="flex items-center p-0.5 bg-surface border border-border rounded-md shadow-xs self-start">
             {[7, 14, 30, 90].map(d => (
               <button
                 key={d}
                 onClick={() => setDays(d)}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                className={`px-3 py-1 text-xs font-mono rounded font-medium transition-all cursor-pointer ${
                   days === d
-                    ? 'bg-[#00E599] text-black'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-action-primary text-action-primary-text shadow-xs'
+                    : 'text-secondary hover:text-primary'
                 }`}
               >
                 {d}d
@@ -628,26 +600,26 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-zinc-900/60 border border-zinc-800 rounded-xl p-1 w-fit">
+        {/* Navigation Tabs */}
+        <div className="flex items-center p-1 bg-surface border border-border rounded-lg shadow-xs w-fit">
           {(['Personal', 'Automations'] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 tab === t
-                  ? 'bg-zinc-800 text-white shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-action-primary text-action-primary-text shadow-xs'
+                  : 'text-secondary hover:text-primary hover:bg-secondary'
               }`}
             >
               {t === 'Personal' && <TrendingUp className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />}
               {t === 'Automations' && <Zap className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />}
-              {t}
+              {t} Overview
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
+        {/* Tab Content */}
         {tab === 'Personal' && (
           <PersonalTab data={productivityData} loading={loadingProductivity} />
         )}

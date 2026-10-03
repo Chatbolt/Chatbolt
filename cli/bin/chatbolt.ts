@@ -11,6 +11,8 @@ import { shareCommand } from '../src/commands/share'
 import { doctorCommand } from '../src/commands/doctor'
 import { evalCommand } from '../src/commands/eval'
 import { securityCommand } from '../src/commands/security'
+import { collaborationCommand } from '../src/commands/collaboration'
+import { runsListCommand, runInspectCommand, errorsListCommand } from '../src/commands/observability'
 
 function parseArgs(args: string[]) {
   const flags: Record<string, any> = {}
@@ -60,6 +62,7 @@ COMMANDS:
   share <runId> [--revoke]    Generate or revoke privacy-scrubbed public replay links
   eval list|show|gate|custom  Inspect benchmark competency scorecards and deployment gates
   security trust|audit|export Inspect enterprise security trust center, audit logs, and compliance
+  team chatter|handoff|standup View inter-agent group chat, structured handoffs, and escalations
   doctor                      Check system connectivity and tripartite architecture health
   help                        Show this help message
 
@@ -267,8 +270,68 @@ async function main() {
       break
     }
 
+    case 'team':
+    case 'collaboration':
+    case 'chat': {
+      const sub = (positional[1] || 'chatter') as any
+      const teamId = flags.team || flags.t || positional[2]
+      const runId = flags.run || flags.r
+      const fromRole = flags.from || flags.f || flags.role
+      const toRole = flags.to
+      const summary = positional.slice(2).join(' ') || flags.summary || flags.s
+      const blocker = flags.blocker || flags.b || positional.slice(2).join(' ')
+      const decision = flags.decision || flags.d
+      const headline = flags.headline || flags.h || positional.slice(2).join(' ')
+      const progress = flags.progress ? Number(flags.progress) : 50
+      const limit = flags.limit ? Number(flags.limit) : 20
+      await collaborationCommand({
+        action: sub,
+        teamId,
+        runId,
+        fromRole,
+        toRole,
+        summary,
+        blocker,
+        decision,
+        headline,
+        progress,
+        limit,
+        json: isJson
+      }, client)
+      break
+    }
+
     case 'doctor': {
       await doctorCommand(isJson, client)
+      break
+    }
+
+    case 'runs':
+    case 'traces': {
+      const sub = positional[1] || 'list'
+      if (sub === 'inspect' || sub === 'show') {
+        const runId = positional[2] || flags.run || flags.r
+        await runInspectCommand({ runId, json: isJson }, client)
+      } else {
+        await runsListCommand({
+          limit: flags.limit ? Number(flags.limit) : 20,
+          status: flags.status || flags.s,
+          role: flags.role || flags.r,
+          json: isJson
+        }, client)
+      }
+      break
+    }
+
+    case 'inspect': {
+      const runId = positional[1] || flags.run || flags.r
+      await runInspectCommand({ runId, json: isJson }, client)
+      break
+    }
+
+    case 'errors': {
+      const sig = positional[1] || flags.signature || flags.sig
+      await errorsListCommand({ signature: sig, json: isJson }, client)
       break
     }
 

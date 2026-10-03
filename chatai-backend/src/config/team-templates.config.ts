@@ -32,7 +32,7 @@ export interface EscalationPolicy {
 export interface TeamTemplate {
   id: string
   name: string
-  category: 'marketing' | 'technical' | 'operations' | 'custom'
+  category: 'marketing' | 'technical' | 'operations' | 'support' | 'custom'
   description: string
   mission: string
   lead_role: string
@@ -293,6 +293,91 @@ Your role:
       'Investigate memory spike anomaly on worker pool nodes and recommend GC tuning',
       'Audit log streams for unhandled promise rejections over the last 24 hours',
       'Execute pre-deployment readiness check on database connection pools'
+    ]
+  },
+
+  support: {
+    id: 'support-team-v1',
+    name: 'Autonomous Customer Support & Success Team',
+    category: 'support',
+    description: '24/7 customer resolution squad for ticket triaging, intelligent FAQ synthesis, customer sentiment tracking, and friendly draft responses.',
+    mission: 'Deliver fast, empathetic, accurate support responses and synthesize continuous user feedback.',
+    lead_role: 'team_lead',
+    escalation_policy: {
+      require_human_approval_for: ['issue_refund', 'cancel_subscription', 'send_external_support_reply'],
+      max_iterations_before_escalation: 4,
+      auto_notify_channels: ['dashboard', 'email', 'zendesk'],
+      on_error_strategy: 'pause_and_notify'
+    },
+    roles: [
+      {
+        role: 'team_lead',
+        name: 'Support Director AI',
+        title: 'Customer Success & Support Lead',
+        description: 'Triage customer inquiries, assigns escalation levels, delegates drafting, and approves outbound responses.',
+        is_lead: true,
+        model: 'anthropic/claude-3.5-sonnet',
+        temperature: 0.2,
+        system_prompt: `You are the Customer Support Director and Lead. Triage incoming tickets, coordinate answers with knowledge base facts, and ensure high customer delight.`,
+        tools_available: [
+          { name: 'delegate_task', description: 'Assign ticket drafting or policy research to team members' },
+          { name: 'query_team_memory', description: 'Query team memory for company policies, FAQ articles, and customer history' },
+          { name: 'save_team_memory', description: 'Save customer insights and resolved solution templates' },
+          { name: 'request_human_guidance', description: 'Escalate to human support manager for complex issues or refunds' },
+          { name: 'synthesize_final_report', description: 'Generate customer support summary and drafted response' }
+        ],
+        autonomy_level: 'supervised'
+      },
+      {
+        role: 'resolver',
+        name: 'Ticket Resolver AI',
+        title: 'Senior Support Specialist',
+        description: 'Drafts accurate, polite, and detailed troubleshooting solutions for customer tickets.',
+        model: 'openai/gpt-4o',
+        temperature: 0.3,
+        system_prompt: `You are the Senior Support Specialist. Write empathetic, clear, and actionable responses to customer inquiries based on verified documentation.`,
+        tools_available: [
+          { name: 'query_team_memory', description: 'Fetch relevant product documentation and past solutions' },
+          { name: 'web_search', description: 'Search public product manuals or documentation' },
+          { name: 'save_team_memory', description: 'Save resolution steps to team memory' }
+        ],
+        autonomy_level: 'autonomous'
+      },
+      {
+        role: 'knowledge',
+        name: 'Knowledge Base Specialist AI',
+        title: 'Docs & FAQ Specialist',
+        description: 'Synthesizes repetitive support tickets into organized documentation and FAQ articles.',
+        model: 'openai/gpt-4o-mini',
+        temperature: 0.2,
+        system_prompt: `You are the Knowledge Base Specialist. Synthesize frequent support inquiries into reusable FAQ guides and documentation.`,
+        tools_available: [
+          { name: 'query_team_memory', description: 'Analyze common ticket resolutions' },
+          { name: 'format_markdown', description: 'Format documentation into clean Markdown guides' },
+          { name: 'save_team_memory', description: 'Save generated FAQ articles into team memory' }
+        ],
+        autonomy_level: 'autonomous'
+      },
+      {
+        role: 'analyst',
+        name: 'Customer Sentiment Analyst AI',
+        title: 'CSAT & Feedback Analyst',
+        description: 'Measures customer sentiment, identifies churn risks, and reports product friction points.',
+        model: 'meta-llama/llama-3.3-70b-instruct',
+        temperature: 0.1,
+        system_prompt: `You are the Customer Sentiment Analyst. Analyze customer messages for tone, urgency, churn indicators, and product feature requests.`,
+        tools_available: [
+          { name: 'sentiment_check', description: 'Evaluate emotional tone, sentiment score, and urgency level' },
+          { name: 'query_team_memory', description: 'Read aggregated customer tickets' },
+          { name: 'save_team_memory', description: 'Store sentiment reports and friction trends' }
+        ],
+        autonomy_level: 'autonomous'
+      }
+    ],
+    suggested_tasks: [
+      'Triage urgent customer inquiries, summarize issues, and draft personalized resolution emails',
+      'Synthesize recurring customer questions into a clean, searchable FAQ and knowledge base article',
+      'Analyze recent customer support conversations to identify top product confusion points'
     ]
   }
 }

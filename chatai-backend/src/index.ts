@@ -704,6 +704,108 @@ async function runMigrations() {
       ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS annual_nudge_sent TIMESTAMPTZ;
     `).catch((e: any) => logger.warn('[Migration] Subscription columns error (safe to ignore if columns already exist): ' + e.message));
 
+    // Personal Assistant Identity & Memory Tables
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS personal_agents (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL UNIQUE REFERENCES tenants(id) ON DELETE CASCADE,
+        name TEXT NOT NULL DEFAULT 'Aria',
+        persona JSONB DEFAULT '{"roleDescription": "Executive AI Partner & Workflow Orchestrator", "tone": "thoughtful", "language": "en", "avatar": "✨"}',
+        running_summary TEXT DEFAULT 'New assistant initialized. Ready to learn user workflow, active projects, and communication preferences.',
+        system_prompt TEXT DEFAULT 'You are a dedicated personal AI companion and primary orchestration partner.',
+        onboarding_completed BOOLEAN DEFAULT false,
+        onboarding_answers JSONB DEFAULT '{}',
+        preferred_model TEXT DEFAULT 'gpt-4o',
+        connected_integrations JSONB DEFAULT '[]',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS personal_agent_messages (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        personal_agent_id UUID NOT NULL REFERENCES personal_agents(id) ON DELETE CASCADE,
+        tenant_id UUID NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        delegated_task_id TEXT,
+        delegated_agent_role TEXT,
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS personal_agent_memories (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        personal_agent_id UUID NOT NULL REFERENCES personal_agents(id) ON DELETE CASCADE,
+        tenant_id UUID NOT NULL,
+        key TEXT NOT NULL,
+        value TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'fact',
+        importance INTEGER DEFAULT 5,
+        is_user_corrected BOOLEAN DEFAULT false,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS personal_agent_triggers (
+        id TEXT PRIMARY KEY,
+        tenant_id UUID NOT NULL,
+        personal_agent_id UUID NOT NULL REFERENCES personal_agents(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        description TEXT,
+        trigger_type TEXT NOT NULL,
+        schedule_cron TEXT,
+        run_at TIMESTAMPTZ,
+        event_pattern JSONB DEFAULT '{}',
+        action_payload JSONB DEFAULT '{}',
+        requires_permission BOOLEAN DEFAULT true,
+        status TEXT NOT NULL DEFAULT 'active',
+        last_run_at TIMESTAMPTZ,
+        next_run_at TIMESTAMPTZ,
+        consecutive_failures INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS personal_agent_background_runs (
+        id TEXT PRIMARY KEY,
+        tenant_id UUID NOT NULL,
+        personal_agent_id UUID NOT NULL REFERENCES personal_agents(id) ON DELETE CASCADE,
+        trigger_id TEXT REFERENCES personal_agent_triggers(id) ON DELETE SET NULL,
+        trigger_type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        executive_summary TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'completed',
+        autonomy_level TEXT NOT NULL DEFAULT 'L1_SUPERVISED',
+        requires_approval BOOLEAN DEFAULT false,
+        approval_status TEXT DEFAULT 'none',
+        approval_id TEXT,
+        approval_details JSONB DEFAULT '{}',
+        artifacts_produced JSONB DEFAULT '[]',
+        side_effects_executed JSONB DEFAULT '[]',
+        started_at TIMESTAMPTZ DEFAULT NOW(),
+        completed_at TIMESTAMPTZ,
+        duration_ms INTEGER DEFAULT 0,
+        error_message TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS personal_agent_pending_approvals (
+        id TEXT PRIMARY KEY,
+        tenant_id UUID NOT NULL,
+        personal_agent_id UUID NOT NULL REFERENCES personal_agents(id) ON DELETE CASCADE,
+        run_id TEXT NOT NULL REFERENCES personal_agent_background_runs(id) ON DELETE CASCADE,
+        trigger_id TEXT REFERENCES personal_agent_triggers(id) ON DELETE SET NULL,
+        action_type TEXT NOT NULL,
+        description TEXT NOT NULL,
+        proposed_payload JSONB DEFAULT '{}',
+        risk_level TEXT NOT NULL DEFAULT 'medium',
+        status TEXT NOT NULL DEFAULT 'pending',
+        decision_rationale TEXT,
+        decided_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `).catch((e: any) => logger.warn('[Migration] PersonalAgent tables creation failed: ' + e.message));
+
     // Add production performance indexes
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_workflow_runs_tenant_id ON workflow_runs(tenant_id, created_at DESC);
@@ -712,6 +814,12 @@ async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_task_checkpoints_run ON task_checkpoints(run_id, step_index);
       CREATE INDEX IF NOT EXISTS idx_action_journal_user ON action_journal(user_id, expires_at);
       CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_personal_agent_tenant ON personal_agents(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_personal_messages_agent ON personal_agent_messages(personal_agent_id, created_at ASC);
+      CREATE INDEX IF NOT EXISTS idx_personal_memories_agent ON personal_agent_memories(personal_agent_id, importance DESC);
+      CREATE INDEX IF NOT EXISTS idx_personal_triggers_tenant ON personal_agent_triggers(tenant_id, status);
+      CREATE INDEX IF NOT EXISTS idx_personal_runs_tenant ON personal_agent_background_runs(tenant_id, started_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_personal_approvals_tenant ON personal_agent_pending_approvals(tenant_id, status);
     `).catch((e: any) => logger.warn('[Migration] Production indexes creation failed: ' + e.message));
 
     logger.info('✅ Database schema checks complete.')
@@ -866,6 +974,9 @@ import permissionsRoutes from './routes/permissions'
 import evaluationsRoutes from './routes/evaluations'
 import sessionReplayRoutes from './routes/session-replay'
 import securityRoutes from './routes/security'
+import collaborationRoutes from './routes/collaboration'
+import observabilityRoutes from './routes/observability'
+import personalAgentRoutes from './routes/personal-agent'
 import { authMiddleware } from './middleware/auth.middleware'
 
 
@@ -994,6 +1105,12 @@ app.use('/api/public', sessionReplayRoutes)
 app.use('/public', sessionReplayRoutes)
 app.use('/api/security', securityRoutes)
 app.use('/security', securityRoutes)
+app.use('/api/collaboration', collaborationRoutes)
+app.use('/collaboration', collaborationRoutes)
+app.use('/api/observability', observabilityRoutes)
+app.use('/observability', observabilityRoutes)
+app.use('/api/personal-agent', personalAgentRoutes)
+app.use('/personal-agent', personalAgentRoutes)
 
 
 app.post('/api/runs/:runId/actions/:actionId/approve', authMiddleware, async (req, res) => {

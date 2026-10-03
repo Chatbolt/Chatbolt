@@ -49,16 +49,16 @@ type PendingInvite = {
 }
 
 function roleBadge(role: string) {
-  if (role === 'owner') return 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/20'
-  if (role === 'admin') return 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
-  if (role === 'viewer') return 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-  return 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+  if (role === 'owner') return 'bg-emerald-50 text-emerald-800 border-emerald-200'
+  if (role === 'admin') return 'bg-indigo-50 text-indigo-800 border-indigo-200'
+  if (role === 'viewer') return 'bg-gray-100 text-gray-700 border-gray-200'
+  return 'bg-sky-50 text-sky-800 border-sky-200'
 }
 
 function statusIcon(status: string) {
-  if (status === 'completed') return <CheckCircle2 className="w-3.5 h-3.5 text-[#00E599]" />
-  if (status === 'failed') return <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-  return <Clock className="w-3.5 h-3.5 text-zinc-400" />
+  if (status === 'completed') return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+  if (status === 'failed') return <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+  return <Clock className="w-3.5 h-3.5 text-muted" />
 }
 
 function relativeTime(dateStr: string) {
@@ -85,59 +85,63 @@ function CreateTeamModal({ onClose, onCreated }: { onClose: () => void; onCreate
     try {
       const res = await (api as any).teams.create({ name: name.trim(), description: description.trim() })
       onCreated(res.team)
-      toast({ title: 'Team created', message: `"${name}" is ready.`, type: 'success' })
+      toast({ title: 'Team workspace initialized', type: 'success' })
       onClose()
     } catch (err: any) {
-      toast({ title: 'Failed to create team', message: err.message, type: 'error' })
+      toast({ title: 'Failed to create team', type: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#111113] border border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <Users2 className="w-4 h-4 text-[#00E599]" />
-            Create Team
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+      <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-primary flex items-center gap-2">
+            <Users2 className="w-4 h-4 text-secondary" />
+            Create Team Workspace
           </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-muted hover:text-primary transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="text-xs text-zinc-400 font-medium mb-1.5 block">Team Name</label>
+            <label className="text-xs text-secondary font-medium mb-1.5 block">Team Identifier</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Growth Team"
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50"
+              placeholder="e.g. Security Operations Squad"
+              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-primary placeholder-muted focus:outline-none focus:border-border-strong focus:ring-1 focus:ring-action-primary/20 shadow-xs"
               autoFocus
               required
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-400 font-medium mb-1.5 block">Description <span className="text-zinc-600">(optional)</span></label>
+            <label className="text-xs text-secondary font-medium mb-1.5 block">Mission Description <span className="text-muted">(optional)</span></label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="What does this team work on?"
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50 resize-none h-20"
+              placeholder="Define operational boundaries and delegated responsibilities..."
+              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-primary placeholder-muted focus:outline-none focus:border-border-strong focus:ring-1 focus:ring-action-primary/20 resize-none h-20 shadow-xs"
             />
           </div>
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-zinc-700 text-sm text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors">
+          <div className="flex gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-md border border-border text-xs font-medium text-secondary hover:bg-secondary transition-colors cursor-pointer shadow-xs"
+            >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="flex-1 py-2.5 rounded-lg bg-[#00E599] text-black text-sm font-semibold hover:bg-[#00E599]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-2 rounded-md bg-action-primary text-action-primary-text text-xs font-medium hover:bg-action-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users2 className="w-4 h-4" />}
-              Create Team
+              Create Workspace
             </button>
           </div>
         </form>
@@ -160,64 +164,68 @@ function InviteTeammateModal({ onClose, onInvite, teamId }: { onClose: () => voi
     setInviting(true)
     try {
       const res = await (api as any).teams.invite(teamId, inviteEmail.trim(), inviteRole)
-      toast({ title: 'Invite sent', message: `Invite sent to ${inviteEmail}`, type: 'success' })
+      toast({ title: 'Invitation generated', type: 'success' })
       onInvite(res.invite, res.invite_url)
       onClose()
     } catch (err: any) {
-      toast({ title: 'Could not send invite', message: err.message, type: 'error' })
+      toast({ title: 'Could not send invite', type: 'error' })
     } finally {
       setInviting(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#111113] border border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-[#00E599]" />
-            Invite a teammate
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+      <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-primary flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-secondary" />
+            Invite Teammate
           </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-muted hover:text-primary transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
         <form onSubmit={sendInvite} className="space-y-4">
           <div>
-            <label className="text-xs text-zinc-400 font-medium mb-1.5 block">Email Address</label>
+            <label className="text-xs text-secondary font-medium mb-1.5 block">Email Address</label>
             <input
               value={inviteEmail}
               onChange={e => setInviteEmail(e.target.value)}
-              placeholder="colleague@company.com"
+              placeholder="operator@company.com"
               type="email"
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50"
+              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-primary placeholder-muted focus:outline-none focus:border-border-strong focus:ring-1 focus:ring-action-primary/20 shadow-xs"
               autoFocus
               required
             />
           </div>
           <div>
-            <label className="text-xs text-zinc-400 font-medium mb-1.5 block">Role</label>
+            <label className="text-xs text-secondary font-medium mb-1.5 block">Access Role</label>
             <select
               value={inviteRole}
               onChange={e => setInviteRole(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#00E599]/50"
+              className="w-full bg-surface border border-border rounded-md px-3 py-2 text-sm text-primary focus:outline-none focus:border-border-strong shadow-xs cursor-pointer"
             >
-              <option value="member">Member</option>
-              <option value="admin">Admin</option>
-              <option value="viewer">Viewer</option>
+              <option value="member">Member (Execute & Monitor)</option>
+              <option value="admin">Admin (Full Fleet Permissions)</option>
+              <option value="viewer">Viewer (Read-Only Metrics)</option>
             </select>
           </div>
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-zinc-700 text-sm text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors">
+          <div className="flex gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-md border border-border text-xs font-medium text-secondary hover:bg-secondary transition-colors cursor-pointer shadow-xs"
+            >
               Cancel
             </button>
             <button
               type="submit"
               disabled={inviting || !inviteEmail.trim()}
-              className="flex-1 py-2.5 rounded-lg bg-[#00E599] text-black text-sm font-semibold hover:bg-[#00E599]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-2 rounded-md bg-action-primary text-action-primary-text text-xs font-medium hover:bg-action-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >
               {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-              Invite
+              Send Invite
             </button>
           </div>
         </form>
@@ -251,7 +259,7 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
       setMyRole(detail.my_role || team.my_role)
       setActivity(actRes.runs || [])
     }).catch(() => {}).finally(() => setLoading(false))
-  }, [team.id])
+  }, [team.id, team.my_role])
 
   const sendInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -259,11 +267,11 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
     setInviting(true)
     try {
       const res = await (api as any).teams.invite(team.id, inviteEmail.trim(), inviteRole)
-      toast({ title: 'Invite sent', message: `Invite sent to ${inviteEmail}`, type: 'success' })
+      toast({ title: 'Invite sent', type: 'success' })
       setPendingInvites(prev => [...prev, { ...res.invite, invite_url: res.invite_url }])
       setInviteEmail('')
     } catch (err: any) {
-      toast({ title: 'Could not send invite', message: err.message, type: 'error' })
+      toast({ title: 'Could not send invite', type: 'error' })
     } finally {
       setInviting(false)
     }
@@ -276,7 +284,7 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
       setMembers(prev => prev.filter(m => m.tenant_id !== memberId))
       toast({ title: 'Member removed', type: 'success' })
     } catch (err: any) {
-      toast({ title: 'Could not remove member', message: err.message, type: 'error' })
+      toast({ title: 'Could not remove member', type: 'error' })
     }
   }
 
@@ -290,89 +298,77 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
   const isOwnerOrAdmin = myRole === 'owner' || myRole === 'admin'
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        .custom-pulse {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .skeleton-bar {
-          background: var(--color-background-secondary, rgba(255, 255, 255, 0.08)) !important;
-          border-radius: var(--border-radius-md, 0.75rem) !important;
-        }
-      `}</style>
-
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors">
+      <div className="flex items-center gap-3 border-b border-border pb-4">
+        <button
+          onClick={onBack}
+          className="p-1.5 rounded-md hover:bg-secondary border border-border text-secondary hover:text-primary transition-colors cursor-pointer shadow-xs"
+        >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="flex-1">
-          <h2 className="text-lg font-bold text-white">{team.name}</h2>
-          {team.description && <p className="text-sm text-zinc-500 mt-0.5">{team.description}</p>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-primary">{team.name}</h2>
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border uppercase ${roleBadge(myRole)}`}>
+              {myRole}
+            </span>
+          </div>
+          {team.description && <p className="text-xs text-muted mt-0.5">{team.description}</p>}
         </div>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${roleBadge(myRole)}`}>
-          {myRole}
-        </span>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Members column */}
+        {/* Members Column */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Members list */}
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#00E599]" />
-                Members ({members.length})
+          <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
+              <h3 className="text-xs font-semibold text-primary flex items-center gap-2">
+                <Users className="w-4 h-4 text-secondary" />
+                Team Members ({members.length})
               </h3>
             </div>
             {loading ? (
-              <div className="p-5 space-y-3 custom-pulse">
+              <div className="p-4 space-y-3 animate-pulse">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-12 skeleton-bar w-full" />
+                  <div key={i} className="h-12 bg-secondary rounded-md" />
                 ))}
               </div>
             ) : members.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3 text-zinc-500 text-center px-4">
-                <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-white">Your team is empty</p>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Invite a teammate to collaborate on this workspace.
-                  </p>
-                </div>
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted text-center px-4">
+                <Users className="w-6 h-6 text-muted" />
+                <p className="text-xs font-semibold text-primary">No members yet</p>
+                <p className="text-xs text-muted max-w-xs">
+                  Invite your operators to collaborate on shared pipelines and agents.
+                </p>
                 {isOwnerOrAdmin && (
                   <button
                     onClick={() => setShowInviteModal(true)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#00E599] text-black text-xs font-semibold rounded-lg hover:bg-[#00E599]/90 transition-colors mt-2"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-action-primary text-action-primary-text text-xs font-medium rounded-md hover:bg-action-primary-hover transition-colors mt-2 cursor-pointer shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Invite a teammate
+                    Invite Member
                   </button>
                 )}
               </div>
             ) : (
-              <div className="divide-y divide-zinc-800/50">
+              <div className="divide-y divide-border">
                 {members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-zinc-800/30 transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-semibold text-white shrink-0">
+                  <div key={m.id} className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center text-xs font-semibold font-mono text-primary shrink-0">
                       {(m.name || m.email)?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{m.name || m.email}</p>
-                      <p className="text-xs text-zinc-500 truncate">{m.email}</p>
+                      <p className="text-xs font-semibold text-primary truncate">{m.name || m.email}</p>
+                      <p className="text-[11px] text-muted truncate">{m.email}</p>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${roleBadge(m.role)}`}>{m.role}</span>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border uppercase ${roleBadge(m.role)}`}>
+                      {m.role}
+                    </span>
                     {isOwnerOrAdmin && m.tenant_id !== currentTenantId && m.role !== 'owner' && (
                       <button
                         onClick={() => removeMember(m.tenant_id, m.name || m.email)}
-                        className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-1 text-muted hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
                         title="Remove member"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -384,30 +380,30 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
             )}
           </div>
 
-          {/* Pending invites */}
+          {/* Pending Invites */}
           {pendingInvites.length > 0 && (
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-zinc-400" />
-                  Pending Invites ({pendingInvites.length})
+            <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
+              <div className="px-4 py-3 border-b border-border bg-surface">
+                <h3 className="text-xs font-semibold text-primary flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-secondary" />
+                  Pending Invitations ({pendingInvites.length})
                 </h3>
               </div>
-              <div className="divide-y divide-zinc-800/50">
+              <div className="divide-y divide-border">
                 {pendingInvites.map(inv => (
-                  <div key={inv.id} className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-800/20 transition-colors">
-                    <Mail className="w-4 h-4 text-zinc-500 shrink-0" />
+                  <div key={inv.id} className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/30 transition-colors">
+                    <Mail className="w-4 h-4 text-muted shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-zinc-300 truncate">{inv.invited_email}</p>
-                      <p className="text-xs text-zinc-600">Role: {inv.role} · Expires {new Date(inv.expires_at).toLocaleDateString()}</p>
+                      <p className="text-xs font-medium text-primary truncate">{inv.invited_email}</p>
+                      <p className="text-[11px] text-muted">Role: {inv.role} · Expires {new Date(inv.expires_at).toLocaleDateString()}</p>
                     </div>
                     {inv.invite_url && (
                       <button
                         onClick={() => copyLink(inv.invite_url)}
-                        className="flex items-center gap-1 text-xs text-zinc-500 hover:text-[#00E599] transition-colors px-2 py-1 rounded hover:bg-[#00E599]/10"
+                        className="flex items-center gap-1 text-xs text-secondary hover:text-primary transition-colors px-2 py-1 rounded border border-border hover:bg-secondary cursor-pointer shadow-xs"
                       >
-                        {copiedLink === inv.invite_url ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        {copiedLink === inv.invite_url ? 'Copied!' : 'Copy link'}
+                        {copiedLink === inv.invite_url ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedLink === inv.invite_url ? 'Copied' : 'Copy link'}
                       </button>
                     )}
                   </div>
@@ -416,26 +412,26 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
             </div>
           )}
 
-          {/* Invite form */}
+          {/* Invite Form */}
           {isOwnerOrAdmin && (
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
-                <UserPlus className="w-4 h-4 text-[#00E599]" />
-                Invite a Member
+            <div className="bg-surface border border-border rounded-lg p-4 shadow-xs">
+              <h3 className="text-xs font-semibold text-primary flex items-center gap-2 mb-3">
+                <UserPlus className="w-4 h-4 text-secondary" />
+                Invite Team Member
               </h3>
-              <form onSubmit={sendInvite} className="flex gap-2">
+              <form onSubmit={sendInvite} className="flex flex-col sm:flex-row gap-2">
                 <input
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
                   placeholder="colleague@company.com"
                   type="email"
-                  className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-[#00E599]/50"
+                  className="flex-1 bg-surface border border-border rounded-md px-3 py-2 text-xs text-primary placeholder-muted focus:outline-none focus:border-border-strong shadow-xs"
                   required
                 />
                 <select
                   value={inviteRole}
                   onChange={e => setInviteRole(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#00E599]/50"
+                  className="bg-surface border border-border rounded-md px-2.5 py-2 text-xs text-primary focus:outline-none focus:border-border-strong shadow-xs cursor-pointer"
                 >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
@@ -444,7 +440,7 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
                 <button
                   type="submit"
                   disabled={inviting || !inviteEmail.trim()}
-                  className="px-4 py-2 bg-[#00E599] text-black text-sm font-semibold rounded-lg hover:bg-[#00E599]/90 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-action-primary text-action-primary-text text-xs font-medium rounded-md hover:bg-action-primary-hover transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {inviting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
                   Invite
@@ -454,35 +450,35 @@ function TeamDetailView({ team, onBack, currentTenantId }: { team: Team; onBack:
           )}
         </div>
 
-        {/* Activity feed */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-800">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#00E599]" />
-              Recent Activity
+        {/* Activity Feed */}
+        <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-surface">
+            <h3 className="text-xs font-semibold text-primary flex items-center gap-2">
+              <Activity className="w-4 h-4 text-secondary" />
+              Recent Execution Activity
             </h3>
           </div>
           {loading ? (
-            <div className="p-5 space-y-3 custom-pulse">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-14 skeleton-bar w-full" />
+            <div className="p-4 space-y-3 animate-pulse">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-12 bg-secondary rounded-md" />
               ))}
             </div>
           ) : activity.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-zinc-600 gap-2">
-              <Activity className="w-8 h-8" />
-              <p className="text-sm">No team activity yet</p>
+            <div className="flex flex-col items-center justify-center py-10 text-muted gap-2">
+              <Activity className="w-6 h-6" />
+              <p className="text-xs">No team runs recorded yet</p>
             </div>
           ) : (
-            <div className="divide-y divide-zinc-800/30 max-h-[500px] overflow-y-auto">
+            <div className="divide-y divide-border max-h-[480px] overflow-y-auto">
               {activity.map(run => (
-                <div key={run.id} className="px-5 py-3 hover:bg-zinc-800/20 transition-colors">
+                <div key={run.id} className="px-4 py-2.5 hover:bg-secondary/40 transition-colors">
                   <div className="flex items-start gap-2">
-                    {statusIcon(run.status)}
+                    <div className="mt-0.5">{statusIcon(run.status)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-white truncate">{run.workflow_name || 'Task'}</p>
-                      <p className="text-xs text-zinc-500 truncate">{run.member_name || run.member_email}</p>
-                      <p className="text-xs text-zinc-600 mt-0.5">{relativeTime(run.created_at)}</p>
+                      <p className="text-xs font-semibold text-primary truncate">{run.workflow_name || 'Task execution'}</p>
+                      <p className="text-[11px] text-muted truncate">{run.member_name || run.member_email}</p>
+                      <p className="text-[10px] text-muted font-mono mt-0.5">{relativeTime(run.created_at)}</p>
                     </div>
                   </div>
                 </div>
@@ -533,7 +529,7 @@ export default function TeamPage() {
       const res = await (api as any).teams.list()
       setTeams(res.teams || [])
     } catch {
-      // silently fail
+      // silently fallback
     } finally {
       setLoading(false)
     }
@@ -549,16 +545,16 @@ export default function TeamPage() {
       await (api as any).teams.delete(teamId)
       setTeams(prev => prev.filter(t => t.id !== teamId))
       if (selectedTeam?.id === teamId) setSelectedTeam(null)
-      toast({ title: 'Team deleted', type: 'success' })
+      toast({ title: 'Team workspace deleted', type: 'success' })
     } catch (err: any) {
-      toast({ title: 'Could not delete team', message: err.message, type: 'error' })
+      toast({ title: 'Could not delete team', type: 'error' })
     }
   }
 
   if (selectedTeam) {
     return (
-      <div className="min-h-screen bg-[#050507] text-white">
-        <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background text-primary">
+        <div className="max-w-5xl mx-auto px-6 py-8">
           <TeamDetailView
             team={selectedTeam}
             onBack={() => setSelectedTeam(null)}
@@ -570,70 +566,54 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        .custom-pulse {
-          animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .skeleton-bar {
-          background: var(--color-background-secondary, rgba(255, 255, 255, 0.08)) !important;
-          border-radius: var(--border-radius-md, 0.75rem) !important;
-        }
-      `}</style>
-
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-background text-primary">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
-            <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#00E599]" />
-              Team Workspaces
-            </h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
-              Collaborate with your team, share tasks, and delegate work
+            <span className="text-xs font-mono font-medium text-muted uppercase tracking-wider">Access & Governance</span>
+            <h1 className="text-2xl font-bold tracking-tight text-primary mt-1">Team Workspaces</h1>
+            <p className="text-xs text-secondary mt-1">
+              Collaborative squad environments, shared execution memory, and granular RBAC.
             </p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#00E599] text-black text-sm font-semibold rounded-xl hover:bg-[#00E599]/90 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-action-primary text-action-primary-text text-xs font-medium rounded-md hover:bg-action-primary-hover transition-colors shadow-xs cursor-pointer self-start"
           >
             <Plus className="w-4 h-4" />
-            Create Team
+            Create Workspace
           </button>
         </div>
 
         {/* Stats */}
         {teams.length > 0 && (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex gap-3 items-center">
-              <div className="w-8 h-8 bg-[#00E599]/15 rounded-lg flex items-center justify-center">
-                <Users className="w-4 h-4 text-[#00E599]" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-surface border border-border rounded-lg p-4 flex gap-3 items-center shadow-xs">
+              <div className="w-9 h-9 bg-secondary border border-border rounded-md flex items-center justify-center">
+                <Users className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-lg font-bold text-white">{teams.length}</p>
-                <p className="text-xs text-zinc-500">Teams</p>
+                <p className="text-xl font-bold font-mono text-primary">{teams.length}</p>
+                <p className="text-xs text-muted">Active Teams</p>
               </div>
             </div>
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex gap-3 items-center">
-              <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-                <Users2 className="w-4 h-4 text-zinc-400" />
+            <div className="bg-surface border border-border rounded-lg p-4 flex gap-3 items-center shadow-xs">
+              <div className="w-9 h-9 bg-secondary border border-border rounded-md flex items-center justify-center">
+                <Users2 className="w-4 h-4 text-secondary" />
               </div>
               <div>
-                <p className="text-lg font-bold text-white">{teams.reduce((s, t) => s + Number(t.member_count || 0), 0)}</p>
-                <p className="text-xs text-zinc-500">Total Members</p>
+                <p className="text-xl font-bold font-mono text-primary">{teams.reduce((s, t) => s + Number(t.member_count || 0), 0)}</p>
+                <p className="text-xs text-muted">Total Seat Holders</p>
               </div>
             </div>
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex gap-3 items-center">
-              <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-                <Shield className="w-4 h-4 text-zinc-400" />
+            <div className="bg-surface border border-border rounded-lg p-4 flex gap-3 items-center shadow-xs">
+              <div className="w-9 h-9 bg-secondary border border-border rounded-md flex items-center justify-center">
+                <Shield className="w-4 h-4 text-secondary" />
               </div>
               <div>
-                <p className="text-lg font-bold text-white">{teams.filter(t => t.my_role === 'owner').length}</p>
-                <p className="text-xs text-zinc-500">Teams You Own</p>
+                <p className="text-xl font-bold font-mono text-primary">{teams.filter(t => t.my_role === 'owner').length}</p>
+                <p className="text-xs text-muted">Owned Workspaces</p>
               </div>
             </div>
           </div>
@@ -641,28 +621,28 @@ export default function TeamPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="grid md:grid-cols-2 gap-4 custom-pulse">
+          <div className="grid md:grid-cols-2 gap-4 animate-pulse">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="skeleton-bar h-40 w-full" />
+              <div key={i} className="h-40 bg-surface border border-border rounded-lg p-4" />
             ))}
           </div>
         ) : teams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center">
-              <Users2 className="w-8 h-8 text-zinc-650" />
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-center bg-surface border border-border rounded-lg p-8 shadow-xs">
+            <div className="w-12 h-12 bg-secondary border border-border rounded-lg flex items-center justify-center">
+              <Users2 className="w-6 h-6 text-secondary" />
             </div>
-            <div className="text-center">
-              <h3 className="text-base font-semibold text-white mb-1">No team yet</h3>
-              <p className="text-sm text-zinc-500 max-w-xs">
-                Create a team to share tasks, collaborate in real-time, and delegate work to teammates.
+            <div className="text-center space-y-1">
+              <h3 className="text-sm font-semibold text-primary">No team workspaces created</h3>
+              <p className="text-xs text-muted max-w-sm">
+                Organize your workforce into squads to isolate shared memory context and delegate task triggers.
               </p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#00E599] text-black text-sm font-semibold rounded-xl hover:bg-[#00E599]/90 transition-colors mt-2"
+              className="flex items-center gap-1.5 px-4 py-2 bg-action-primary text-action-primary-text text-xs font-medium rounded-md hover:bg-action-primary-hover transition-colors mt-2 cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" />
-              Create your first team
+              Create Squad Workspace
             </button>
           </div>
         ) : (
@@ -670,44 +650,42 @@ export default function TeamPage() {
             {teams.map(team => (
               <div
                 key={team.id}
-                className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-all group"
+                className="bg-surface border border-border rounded-lg p-5 hover:border-border-strong transition-all shadow-xs"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#00E599]/10 border border-[#00E599]/20 flex items-center justify-center">
-                      <span className="text-[#00E599] font-bold text-base">{team.name[0]?.toUpperCase()}</span>
+                    <div className="w-9 h-9 rounded-md bg-secondary border border-border flex items-center justify-center">
+                      <span className="text-primary font-bold font-mono text-sm">{team.name[0]?.toUpperCase()}</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white text-sm">{team.name}</h3>
-                      <p className="text-xs text-zinc-500">{team.member_count} member{Number(team.member_count) !== 1 ? 's' : ''}</p>
+                      <h3 className="font-semibold text-primary text-sm">{team.name}</h3>
+                      <p className="text-xs text-muted font-mono">{team.member_count} member{Number(team.member_count) !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {team.my_role === 'owner' && (
-                      <span className="text-xs text-[#00E599] flex items-center gap-1">
-                        <Crown className="w-3 h-3" /> Owner
-                      </span>
-                    )}
-                  </div>
+                  {team.my_role === 'owner' && (
+                    <span className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <Crown className="w-3 h-3" /> Owner
+                    </span>
+                  )}
                 </div>
 
                 {team.description && (
-                  <p className="text-xs text-zinc-500 mb-4 line-clamp-2">{team.description}</p>
+                  <p className="text-xs text-secondary mb-4 line-clamp-2">{team.description}</p>
                 )}
 
-                <div className="flex items-center gap-2 mt-4">
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
                   <button
                     onClick={() => setSelectedTeam(team)}
-                    className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 py-1.5 bg-surface hover:bg-secondary border border-border text-primary text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    View Team
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    View Workspace
+                    <ArrowRight className="w-3.5 h-3.5 text-secondary" />
                   </button>
                   {team.my_role === 'owner' && (
                     <button
                       onClick={() => deleteTeam(team.id, team.name)}
-                      className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Delete team"
+                      className="p-1.5 text-muted hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-md transition-colors cursor-pointer"
+                      title="Delete team workspace"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

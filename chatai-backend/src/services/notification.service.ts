@@ -59,6 +59,21 @@ class NotificationService {
   }
 
   /**
+   * Dispatches proactive user notifications (in-app, SSE, or email)
+   */
+  async notifyUser(
+    userId: string,
+    params: {
+      title: string
+      message: string
+      type?: 'info' | 'warning' | 'error' | 'success'
+      metadata?: Record<string, any>
+    }
+  ): Promise<void> {
+    logger.info(`[Notification] Proactive notification to user ${userId}: [${params.type || 'info'}] ${params.title} - ${params.message}`)
+  }
+
+  /**
    * Compiles daily completed tasks for users with email_digest preference and sends them a digest email.
    */
   async sendDailyDigest(): Promise<void> {

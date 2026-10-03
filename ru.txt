@@ -1,0 +1,92 @@
+Here are the complete instructions to run the Chatbolt platform and its interactive CLI tool directly from your terminal.
+
+Option 1: Quickstart with Docker Compose (Recommended)
+To launch the full platform (Node.js Backend, Next.js Frontend, Go Sandbox Runtime, Python Brain, and PostgreSQL database) with a single command:
+
+powershell
+docker compose up -d
+Once started:
+
+Web Dashboard: http://localhost:3000 (Onboarding: http://localhost:3000/onboarding)
+Core API Backend: http://localhost:4000
+Go Agent-Runtime: http://localhost:50051
+Python Agent-Brain: http://localhost:8000
+To view live logs:
+
+powershell
+docker compose logs -f
+Option 2: Running Services Manually in Separate Terminals
+If you are developing locally without Docker, open 4 terminal windows in the project root:
+
+Terminal 1: Node.js Backend API
+powershell
+cd chatai-backend
+npm install
+npm run dev
+Runs on port 4000 (http://localhost:4000). Handles auth, team orchestration, memory, and SSE events.
+
+Terminal 2: Next.js Frontend Web App
+powershell
+cd frontend
+npm install
+npm run dev
+Runs on port 3000 (http://localhost:3000). Access the guided setup at http://localhost:3000/onboarding.
+
+Terminal 3: Go Agent Sandbox Runtime (agent-runtime)
+powershell
+cd agent-runtime
+go run cmd/main.go
+Runs on port 50051. Provides isolated sandboxes for diff patching, execution, and worker pool management.
+
+Terminal 4: Python ReAct Brain (agent-brain)
+powershell
+cd agent-brain
+pip install -r requirements.txt
+python main.py
+Runs on port 8000. Drives multi-provider ReAct loops, LangGraph coordination, and tool execution.
+
+Option 3: Using the Interactive Terminal CLI
+Chatbolt includes a developer CLI that lets you interact with agent teams, inspect memory, approve permissions, and view cost ledgers directly from your terminal:
+
+powershell
+cd cli
+npm install
+Common CLI Commands:
+Check System & Agent Health:
+
+powershell
+npx tsx bin/chatbolt.ts doctor
+Dispatch an Autonomous Task:
+
+powershell
+npx tsx bin/chatbolt.ts run "Generate a multi-channel launch announcement" --team marketing --watch
+Check Task Status & Live Stream:
+
+powershell
+npx tsx bin/chatbolt.ts status
+Review Visual Step Replays & Rationales:
+
+powershell
+npx tsx bin/chatbolt.ts replay <runId>
+Inspect & Manage Agent Memory:
+
+powershell
+npx tsx bin/chatbolt.ts memory list
+Manage Autonomy & Pending Human Approvals:
+
+powershell
+npx tsx bin/chatbolt.ts permissions list
+Inspect Real-Time Token & Spend Breakdown:
+
+powershell
+npx tsx bin/chatbolt.ts cost summary
+View All Available Commands:
+
+powershell
+npx tsx bin/chatbolt.ts --help
+Running the Test Suite in Terminal
+To verify the test suites across security, team orchestration, and permission trust:
+
+powershell
+cd chatai-backend
+npm test

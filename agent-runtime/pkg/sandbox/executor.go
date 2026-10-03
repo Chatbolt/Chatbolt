@@ -28,6 +28,7 @@ type ExecutionResult struct {
 
 type ExecutionOptions struct {
 	ExecutionID    string            `json:"execution_id"`
+	RunID          string            `json:"run_id,omitempty"`
 	Language       string            `json:"language"`
 	Code           string            `json:"code"`
 	TimeoutSeconds int               `json:"timeout_seconds"`

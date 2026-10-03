@@ -15,9 +15,15 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   },
   global: {
-    fetch: (url: any, opts: any) => Promise.race([
-      fetch(url, opts),
-      new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 3000))
-    ])
+    fetch: async (url: any, opts: any) => {
+      try {
+        return await Promise.race([
+          fetch(url, opts),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Supabase timeout')), 3000))
+        ])
+      } catch (err: any) {
+        throw new Error(`Supabase unreachable: ${err.message || 'Connection failed'}`)
+      }
+    }
   }
 })

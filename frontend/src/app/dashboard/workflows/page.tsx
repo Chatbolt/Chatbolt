@@ -69,7 +69,6 @@ export default function WorkflowsMainPage() {
   const eventSourceRef = useRef<EventSource | null>(null)
   const activeWorkflowIdRef = useRef<string | null>(null) // persists across re-renders for RESTART
 
-
   const filteredCards = activeCategory === 'All' 
     ? WORKFLOW_CARDS 
     : WORKFLOW_CARDS.filter(c => c.category === activeCategory)
@@ -225,25 +224,25 @@ export default function WorkflowsMainPage() {
   // VIEW: SYNTHESIZING
   if (view === 'synthesizing') {
     return (
-      <div className="flex flex-col h-full bg-[#0A0A0A] items-center justify-center space-y-12 p-8">
+      <div className="flex flex-col h-full bg-background items-center justify-center space-y-8 p-8">
         <div className="relative">
-           <div className="w-32 h-32 rounded-full border border-[#00DFB8]/10 flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full border-2 border-t-[#00DFB8] border-r-transparent border-b-transparent border-l-transparent animate-spin duration-[2s]" />
+           <div className="w-24 h-24 rounded-full border border-border flex items-center justify-center bg-surface shadow-xs">
+              <div className="w-16 h-16 rounded-full border-2 border-t-signal-blue border-r-transparent border-b-transparent border-l-transparent animate-spin duration-[1.5s]" />
            </div>
            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles size={32} className="text-[#00DFB8] animate-pulse" />
+              <Sparkles size={24} className="text-signal-blue animate-pulse" />
            </div>
         </div>
 
-        <div className="text-center space-y-6 max-w-md w-full">
-           <h2 className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Autonomous Orchestration</h2>
-           <div className="space-y-2 text-left bg-white/[0.02] border border-white/5 p-6 rounded-xl min-h-[160px]">
+        <div className="text-center space-y-4 max-w-md w-full">
+           <h2 className="text-xs font-bold text-primary uppercase tracking-wider">Autonomous Orchestration</h2>
+           <div className="space-y-2 text-left bg-surface border border-border p-6 rounded-lg min-h-[160px] shadow-xs">
               {thinking.map((line, i) => (
-                <div key={i} className="text-[10px] font-mono text-[#00DFB8] animate-in slide-in-from-bottom-1 duration-500">
+                <div key={i} className="text-xs font-mono text-signal-blue animate-in slide-in-from-bottom-1 duration-500">
                   {line}
                 </div>
               ))}
-              <div className="w-2 h-3 bg-[#00DFB8] animate-pulse inline-block ml-1" />
+              <div className="w-1.5 h-3.5 bg-signal-blue animate-pulse inline-block ml-1 align-middle" />
            </div>
         </div>
       </div>
@@ -253,37 +252,37 @@ export default function WorkflowsMainPage() {
   // VIEW: REVIEW
   if (view === 'review' && config) {
     return (
-      <div className="flex flex-col h-full bg-[#0A0A0A] p-8 overflow-y-auto custom-scrollbar">
-        <div className="max-w-4xl mx-auto w-full space-y-8 animate-in fade-in zoom-in-95 duration-700">
-          <div className="flex items-center justify-between border-b border-white/5 pb-6">
+      <div className="flex flex-col h-full bg-background p-8 overflow-y-auto custom-scrollbar">
+        <div className="max-w-4xl mx-auto w-full space-y-6 animate-in fade-in zoom-in-95 duration-500">
+          <div className="flex items-center justify-between border-b border-border pb-4">
              <div className="space-y-1">
-                <div className="text-[10px] font-black text-[#00DFB8] uppercase tracking-[0.3em]">Manifest Ready</div>
-                <h3 className="text-xl font-bold text-white">{config.workflow_name}</h3>
+                <div className="text-xs font-bold text-signal-blue uppercase tracking-wider">Manifest Ready</div>
+                <h3 className="text-xl font-bold text-primary">{config.workflow_name}</h3>
              </div>
              <button 
                onClick={() => setView('browse')}
-               className="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-all"
+               className="text-xs font-semibold text-muted hover:text-primary transition-all cursor-pointer px-3 py-1.5 rounded-md hover:bg-secondary"
              >
                 Discard
              </button>
           </div>
           
-          <div className="grid grid-cols-3 gap-8">
-             <div className="col-span-2 space-y-6">
-                <div className="space-y-4">
-                   <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Execution Pipeline</div>
-                   <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-6">
+             <div className="col-span-2 space-y-4">
+                <div className="space-y-3">
+                   <div className="text-xs font-bold text-secondary uppercase tracking-wider">Execution Pipeline</div>
+                   <div className="space-y-2.5">
                       {config?.agents?.map((a: any) => (
-                        <div key={a.position} className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl flex items-start gap-4 group hover:border-[#00DFB8]/30 transition-all">
-                           <div className="w-10 h-10 rounded-xl bg-[#00DFB8]/10 flex items-center justify-center shrink-0">
-                              <Bot size={20} className="text-[#00DFB8]" />
+                        <div key={a.position} className="p-4 bg-surface border border-border rounded-lg flex items-start gap-4 group hover:border-signal-blue/40 transition-all shadow-xs">
+                           <div className="w-9 h-9 rounded-md bg-secondary border border-border flex items-center justify-center shrink-0">
+                              <Bot size={18} className="text-primary" />
                            </div>
-                           <div className="flex-1 space-y-2">
+                           <div className="flex-1 space-y-1">
                               <div className="flex items-center justify-between">
-                                 <div className="text-xs font-bold text-white uppercase tracking-tight">{a.name}</div>
-                                 <div className="text-[9px] font-black text-[#00DFB8] uppercase tracking-widest">{a.role}</div>
+                                 <div className="text-xs font-bold text-primary">{a.name}</div>
+                                 <div className="text-[11px] font-semibold text-signal-blue">{a.role}</div>
                               </div>
-                              <p className="text-[10px] text-gray-400 leading-relaxed">{a.description}</p>
+                              <p className="text-xs text-muted leading-relaxed">{a.description}</p>
                            </div>
                         </div>
                       ))}
@@ -291,73 +290,73 @@ export default function WorkflowsMainPage() {
                 </div>
              </div>
 
-             <div className="space-y-6">
-                <div className="p-6 bg-white/[0.03] border border-white/10 rounded-2xl space-y-6">
-                   <div className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                      <Settings size={12} className="text-[#00DFB8]" /> Signal Inputs
+             <div className="space-y-4">
+                <div className="p-5 bg-surface border border-border rounded-lg space-y-5 shadow-xs">
+                   <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                      <Settings size={14} className="text-signal-blue" /> Signal Inputs
                    </div>
-                                      {(config?.missing_inputs?.length || 0) > 0 ? (
-                     <div className="space-y-4">
-                        {config.missing_inputs.map((m: any) => {
-                          const isMissing = m.required && !inputs[m.field]?.trim()
-                          const isFileType = m.type === 'file' || m.question?.toLowerCase().includes('upload') || m.question?.toLowerCase().includes('csv') || m.question?.toLowerCase().includes('pdf')
-                          return (
-                          <div key={m.field} className="space-y-2">
-                             <label className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-tight">
-                               <span className={isMissing ? 'text-red-400' : 'text-gray-400'}>{m.question}</span>
-                               {m.required && <span className="text-red-500">*</span>}
-                             </label>
-                             {isFileType ? (
-                               <div className="relative group">
-                                 <input 
-                                   type="file"
-                                   accept=".csv,.pdf,.xlsx,.txt,.docx"
-                                   onChange={(e) => {
-                                     const file = e.target.files?.[0]
-                                     if (file) {
-                                       const reader = new FileReader()
-                                       reader.onload = () => setInputs(prev => ({ ...prev, [m.field]: reader.result as string, [`${m.field}_name`]: file.name }))
-                                       reader.readAsDataURL(file)
-                                     }
-                                   }}
-                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                 />
-                                 <div className={`w-full border border-dashed rounded-xl px-4 py-4 text-center transition-all flex flex-col items-center gap-2 ${isMissing ? 'border-red-500/50 bg-red-500/5' : 'border-white/20 group-hover:border-[#00DFB8]/50 bg-black/40'}`}>
-                                   <Upload size={16} className={inputs[m.field] ? 'text-[#00DFB8]' : isMissing ? 'text-red-400' : 'text-gray-500'} />
-                                   <span className={`text-xs font-bold ${inputs[`${m.field}_name`] ? 'text-[#00DFB8]' : isMissing ? 'text-red-400' : 'text-gray-500'}`}>
-                                     {inputs[`${m.field}_name`] || 'Upload CSV, PDF, Excel or Text file'}
-                                   </span>
-                                   <span className="text-[9px] text-gray-600">csv · pdf · xlsx · txt · docx</span>
-                                 </div>
-                               </div>
-                             ) : (
-                               <input 
-                                 value={inputs[m.field] || ''}
-                                 onChange={(e) => setInputs(prev => ({ ...prev, [m.field]: e.target.value }))}
-                                 className={`w-full bg-black/40 border rounded-xl px-4 py-2.5 text-white text-xs outline-none transition-all ${isMissing ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[#00DFB8]/50'}`}
-                                 placeholder={`Enter ${m.field}...`}
-                               />
-                             )}
-                          </div>
-                        )})}
-                     </div>
-                   ) : (
-                     <div className="text-[10px] text-gray-500 font-medium italic">No manual inputs required. All signals autocalibrated.</div>
-                   )}
+                   {(config?.missing_inputs?.length || 0) > 0 ? (
+                      <div className="space-y-3.5">
+                         {config.missing_inputs.map((m: any) => {
+                           const isMissing = m.required && !inputs[m.field]?.trim()
+                           const isFileType = m.type === 'file' || m.question?.toLowerCase().includes('upload') || m.question?.toLowerCase().includes('csv') || m.question?.toLowerCase().includes('pdf')
+                           return (
+                           <div key={m.field} className="space-y-1.5">
+                              <label className="flex items-center gap-1.5 text-xs font-semibold">
+                                <span className={isMissing ? 'text-signal-red' : 'text-secondary'}>{m.question}</span>
+                                {m.required && <span className="text-signal-red">*</span>}
+                              </label>
+                              {isFileType ? (
+                                <div className="relative group cursor-pointer">
+                                  <input 
+                                    type="file"
+                                    accept=".csv,.pdf,.xlsx,.txt,.docx"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) {
+                                        const reader = new FileReader()
+                                        reader.onload = () => setInputs(prev => ({ ...prev, [m.field]: reader.result as string, [`${m.field}_name`]: file.name }))
+                                        reader.readAsDataURL(file)
+                                      }
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                  />
+                                  <div className={`w-full border border-dashed rounded-md px-4 py-4 text-center transition-all flex flex-col items-center gap-1.5 ${isMissing ? 'border-signal-red/50 bg-signal-red-bg' : 'border-border group-hover:border-signal-blue bg-subtle'}`}>
+                                    <Upload size={16} className={inputs[m.field] ? 'text-signal-blue' : isMissing ? 'text-signal-red' : 'text-muted'} />
+                                    <span className={`text-xs font-semibold ${inputs[`${m.field}_name`] ? 'text-signal-blue' : isMissing ? 'text-signal-red' : 'text-muted'}`}>
+                                      {inputs[`${m.field}_name`] || 'Upload CSV, PDF, Excel or Text file'}
+                                    </span>
+                                    <span className="text-[10px] text-muted">csv · pdf · xlsx · txt · docx</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <input 
+                                  value={inputs[m.field] || ''}
+                                  onChange={(e) => setInputs(prev => ({ ...prev, [m.field]: e.target.value }))}
+                                  className={`w-full bg-surface border rounded-md px-3.5 py-2 text-primary text-xs outline-none transition-all ${isMissing ? 'border-signal-red focus:ring-1 focus:ring-signal-red' : 'border-border focus:border-signal-blue focus:ring-1 focus:ring-signal-blue'}`}
+                                  placeholder={`Enter ${m.field}...`}
+                                />
+                              )}
+                           </div>
+                         )})}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted font-medium italic">No manual inputs required. All signals autocalibrated.</div>
+                    )}
 
-                   {(config?.missing_inputs || []).some((m: any) => m.required && !inputs[m.field]?.trim()) && (
-                     <div className="text-[9px] text-red-400 font-bold uppercase tracking-widest text-center mt-2">
-                       Fill all required fields (*) before deploying
-                     </div>
-                   )}
-                   <button 
-                     onClick={handleDeploy}
-                     className="w-full py-4 bg-[#00DFB8] text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#00f7cc] transition-all shadow-xl shadow-[#00DFB8]/10 flex items-center justify-center gap-2 mt-4 disabled:opacity-40 disabled:cursor-not-allowed"
-                   >
-                      <Zap size={14} fill="currentColor" /> Initiate Deployment
-                   </button>
-                </div>
-             </div>
+                    {(config?.missing_inputs || []).some((m: any) => m.required && !inputs[m.field]?.trim()) && (
+                      <div className="text-xs text-signal-red font-semibold text-center mt-2">
+                        Fill all required fields (*) before deploying
+                      </div>
+                    )}
+                    <button 
+                      onClick={handleDeploy}
+                      className="w-full py-2.5 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover transition-all shadow-xs flex items-center justify-center gap-2 mt-3 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                       <Zap size={14} fill="currentColor" /> Initiate Deployment
+                    </button>
+                 </div>
+              </div>
           </div>
         </div>
       </div>
@@ -367,20 +366,20 @@ export default function WorkflowsMainPage() {
   // VIEW: RUNNING
   if (view === 'running') {
     return (
-      <div className="flex flex-col h-full bg-[#0A0A0A] p-8 overflow-hidden">
-        <div className="max-w-6xl mx-auto w-full h-full flex flex-col space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col h-full bg-background p-8 overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full h-full flex flex-col space-y-6 animate-in fade-in duration-500">
            {/* HEADER */}
-           <div className="flex items-center justify-between border-b border-white/5 pb-6 shrink-0">
-              <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 rounded-xl bg-[#00DFB8] flex items-center justify-center">
-                    <WorkflowIcon size={20} className="text-black" />
+           <div className="flex items-center justify-between border-b border-border pb-4 shrink-0">
+              <div className="flex items-center gap-3.5">
+                 <div className="w-9 h-9 rounded-md bg-action-primary text-action-primary-text flex items-center justify-center shadow-xs">
+                    <WorkflowIcon size={18} />
                  </div>
                  <div>
-                    <div className="text-[10px] font-black text-[#00DFB8] uppercase tracking-[0.3em]">Live Pipeline</div>
-                    <h3 className="text-lg font-bold text-white">{currentWorkflow?.name}</h3>
+                    <div className="text-xs font-bold text-signal-blue uppercase tracking-wider">Live Pipeline</div>
+                    <h3 className="text-base font-bold text-primary">{currentWorkflow?.name}</h3>
                  </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                  <button 
                    onClick={() => {
                      if (eventSourceRef.current) {
@@ -389,7 +388,7 @@ export default function WorkflowsMainPage() {
                      }
                      setView('browse')
                    }}
-                   className="px-6 py-2.5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-white/20 transition-all"
+                   className="px-4 py-2 border border-border rounded-md text-xs font-semibold text-secondary hover:text-primary hover:bg-subtle transition-all cursor-pointer"
                  >
                     Exit Runtime
                  </button>
@@ -400,7 +399,7 @@ export default function WorkflowsMainPage() {
                       setFinalOutput(null)
                       handleRun(wfId)
                     }}
-                    className="px-6 py-2.5 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-action-primary text-action-primary-text rounded-md text-xs font-semibold hover:bg-action-primary-hover transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
                      <Play size={12} fill="currentColor" /> Restart
                   </button>
@@ -408,7 +407,7 @@ export default function WorkflowsMainPage() {
            </div>
 
            {/* VISUALIZER */}
-           <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8 shrink-0">
+           <div className="bg-surface border border-border rounded-lg p-6 shrink-0 shadow-xs">
               <PipelineVisualizer agents={currentAgents} steps={steps} />
            </div>
 
@@ -419,23 +418,23 @@ export default function WorkflowsMainPage() {
 
            {/* FINAL OUTPUT PANEL */}
            {finalOutput && Object.keys(finalOutput).length > 0 && (
-             <div className="shrink-0 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-               <div className="text-[10px] font-black text-[#00DFB8] uppercase tracking-[0.3em] flex items-center gap-2">
-                 <Zap size={10} fill="currentColor" /> Final Output
+             <div className="shrink-0 space-y-3 animate-in fade-in slide-in-from-bottom-3 duration-500">
+               <div className="text-xs font-bold text-signal-blue uppercase tracking-wider flex items-center gap-2">
+                 <Zap size={12} fill="currentColor" /> Final Output
                </div>
                {Object.entries(finalOutput).filter(([k]) => !k.startsWith('agent_')).map(([agentName, output]: [string, any]) => {
                  const content = output?.data?.content || output?.summary || ''
                  if (!content) return null
                  return (
-                   <div key={agentName} className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-3">
+                   <div key={agentName} className="bg-surface border border-border rounded-lg p-5 space-y-2 shadow-xs">
                      <div className="flex items-center justify-between">
-                       <div className="text-[9px] font-black text-[#00DFB8] uppercase tracking-widest">{agentName}</div>
+                       <div className="text-xs font-bold text-signal-blue">{agentName}</div>
                        <button
                          onClick={() => { navigator.clipboard.writeText(content); toastSuccess('Copied!') }}
-                         className="text-[8px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-all px-2 py-1 rounded-lg hover:bg-white/5"
+                         className="text-[11px] font-semibold text-muted hover:text-primary uppercase tracking-wider transition-all px-2 py-1 rounded hover:bg-secondary cursor-pointer"
                        >Copy</button>
                      </div>
-                     <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{content}</p>
+                     <p className="text-xs text-primary leading-relaxed whitespace-pre-wrap">{content}</p>
                    </div>
                  )
                })}
@@ -448,26 +447,25 @@ export default function WorkflowsMainPage() {
 
   // VIEW: BROWSE
   return (
-    <div className="flex flex-col h-full bg-[#0A0A0A] text-white font-sans selection:bg-[#00DFB8]/30 overflow-y-auto custom-scrollbar">
-      <div className="max-w-[1000px] mx-auto w-full px-6 py-24 space-y-20">
+    <div className="flex flex-col h-full bg-background text-primary font-sans selection:bg-accent/30 overflow-y-auto custom-scrollbar">
+      <div className="max-w-[1000px] mx-auto w-full px-6 py-16 space-y-14">
         
         {/* HERO */}
-        <div className="text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00DFB8]/10 border border-[#00DFB8]/20 text-[#00DFB8] text-[9px] font-black uppercase tracking-[0.3em] mb-4">
-             <Zap size={10} fill="currentColor" /> Next Gen Autonomous Engine
+        <div className="text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-signal-blue-bg border border-signal-blue-border text-signal-blue text-xs font-bold uppercase tracking-wider">
+             <Zap size={12} fill="currentColor" /> Autonomous Engine
           </div>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-white max-w-2xl mx-auto leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary max-w-2xl mx-auto leading-tight">
             Deploy an autonomous workforce in seconds.
           </h1>
-          <p className="text-gray-400 text-sm md:text-base font-medium max-w-xl mx-auto leading-relaxed">
+          <p className="text-secondary text-sm md:text-base font-normal max-w-xl mx-auto leading-relaxed">
             Describe your mission. We'll architect the logic, provision the agents, and execute the pipeline end-to-end.
           </p>
 
-          <form onSubmit={handleSynthesize} className="relative max-w-3xl mx-auto mt-12 group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00DFB8]/20 to-purple-500/20 rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+          <form onSubmit={handleSynthesize} className="relative max-w-3xl mx-auto mt-8">
             <div className="relative">
               <textarea
-                className="w-full bg-[#111] border border-white/10 hover:border-white/20 focus:border-[#00DFB8]/50 rounded-3xl px-8 py-7 text-white text-base md:text-lg resize-none outline-none transition-all placeholder:text-gray-700 shadow-2xl min-h-[140px]"
+                className="w-full bg-surface border border-border hover:border-border-focus focus:border-signal-blue focus:ring-1 focus:ring-signal-blue rounded-xl px-6 py-5 text-primary text-sm md:text-base resize-none outline-none transition-all placeholder:text-muted shadow-xs min-h-[130px]"
                 placeholder="Describe a mission for your AI team..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -478,16 +476,16 @@ export default function WorkflowsMainPage() {
                   }
                 }}
               />
-              <div className="absolute bottom-6 right-6 flex items-center gap-4">
-                 <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest hidden sm:block">
+              <div className="absolute bottom-4 right-4 flex items-center gap-3">
+                 <div className="text-xs font-medium text-muted hidden sm:block">
                    Press Enter to Initiate
                  </div>
                  <button 
                    type="submit"
                    disabled={!prompt.trim()}
-                   className="w-12 h-12 bg-[#00DFB8] hover:bg-[#00f7cc] disabled:bg-white/5 disabled:text-gray-700 text-black rounded-2xl flex items-center justify-center transition-all disabled:cursor-not-allowed shadow-lg shadow-[#00DFB8]/20"
+                   className="w-10 h-10 bg-action-primary hover:bg-action-primary-hover disabled:bg-secondary disabled:text-muted text-action-primary-text rounded-lg flex items-center justify-center transition-all disabled:cursor-not-allowed shadow-xs cursor-pointer"
                  >
-                   <ArrowRight size={20} strokeWidth={3} />
+                   <ArrowRight size={18} />
                  </button>
               </div>
             </div>
@@ -495,21 +493,21 @@ export default function WorkflowsMainPage() {
         </div>
 
         {/* TEMPLATES */}
-        <div className="space-y-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-             <div className="space-y-1">
-                <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Mission Blueprints</h3>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Pre-calibrated orchestration templates</p>
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+             <div className="space-y-1 text-left">
+                <h3 className="text-xs font-bold text-primary uppercase tracking-wider">Mission Blueprints</h3>
+                <p className="text-xs text-muted">Pre-calibrated orchestration templates</p>
              </div>
-             <div className="flex flex-wrap items-center justify-center gap-2">
+             <div className="flex flex-wrap items-center justify-center gap-1.5">
                {CATEGORIES.map(cat => (
                  <button
                    key={cat}
                    onClick={() => setActiveCategory(cat)}
-                   className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                      activeCategory === cat 
-                     ? 'bg-white text-black shadow-xl shadow-white/10' 
-                     : 'bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white'
+                     ? 'bg-action-primary text-action-primary-text shadow-xs' 
+                     : 'bg-surface text-secondary border border-border hover:bg-subtle hover:text-primary'
                    }`}
                  >
                    {cat}
@@ -518,35 +516,31 @@ export default function WorkflowsMainPage() {
              </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCards.map((card, idx) => (
               <button 
                 key={idx}
                 onClick={() => setPrompt(card.desc)}
-                className="group bg-white/[0.02] border border-white/5 hover:border-[#00DFB8]/30 rounded-3xl p-8 text-left transition-all duration-500 hover:bg-white/[0.04] flex flex-col h-full relative overflow-hidden"
+                className="group bg-surface border border-border hover:border-signal-blue/40 rounded-lg p-5 text-left transition-all hover:bg-subtle flex flex-col h-full relative cursor-pointer shadow-xs"
               >
-                <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <ArrowRight size={16} className="text-[#00DFB8] -rotate-45" />
-                </div>
-                
-                <div className="mb-6">
-                   <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-[#00DFB8]/10 group-hover:text-[#00DFB8] transition-all">
-                      <card.icon size={20} />
+                <div className="mb-4">
+                   <div className="w-10 h-10 rounded-md bg-secondary border border-border flex items-center justify-center text-primary group-hover:bg-action-primary group-hover:text-action-primary-text transition-all">
+                      <card.icon size={18} />
                    </div>
                 </div>
 
-                <div className="space-y-3 mt-auto">
-                   <div className="inline-flex text-[9px] font-black text-[#00DFB8] uppercase tracking-[0.2em]">{card.category}</div>
-                   <h3 className="text-sm font-bold text-white group-hover:text-[#00DFB8] transition-colors">
+                <div className="space-y-2 mt-auto">
+                   <div className="inline-flex text-[11px] font-bold text-signal-blue uppercase tracking-wider">{card.category}</div>
+                   <h3 className="text-sm font-bold text-primary group-hover:text-signal-blue transition-colors">
                      {card.title}
                    </h3>
-                   <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
+                   <p className="text-xs text-muted font-normal leading-relaxed">
                      {card.desc}
                    </p>
                    {card.platforms && (
-                     <div className="flex flex-wrap gap-1.5 pt-3">
+                     <div className="flex flex-wrap gap-1.5 pt-2">
                        {card.platforms.map(p => (
-                         <span key={p} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[9px] font-bold text-gray-400">
+                         <span key={p} className="px-2 py-0.5 rounded bg-secondary border border-border text-[10px] font-semibold text-secondary">
                            {p}
                          </span>
                        ))}

@@ -3,18 +3,18 @@ import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
 import { 
-  Users, Search, Filter, Download, Mail, Phone, MessageSquare,
+  Users, Search, Download, Mail, Phone, MessageSquare,
   MoreHorizontal, UserPlus, Clock, ExternalLink, Activity, Database,
-  X, Building2, Briefcase, Tag, ChevronLeft, ChevronRight, Edit3,
-  Globe, RefreshCw, Check, ArrowUpDown
+  X, Building2, ChevronLeft, ChevronRight, Edit3,
+  Globe, RefreshCw, Check
 } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
-  lead: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  qualified: 'bg-[#00E599]/10 text-[#00E599] border-[#00E599]/20',
-  customer: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  churned: 'bg-red-500/10 text-red-400 border-red-500/20',
-  archived: 'bg-zinc-700 text-zinc-400 border-zinc-600',
+  lead: 'bg-amber-50 text-amber-800 border-amber-200',
+  qualified: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  customer: 'bg-sky-50 text-sky-800 border-sky-200',
+  churned: 'bg-rose-50 text-rose-800 border-rose-200',
+  archived: 'bg-gray-100 text-gray-700 border-gray-200',
 }
 
 const SOURCE_ICONS: Record<string, any> = {
@@ -151,209 +151,235 @@ export default function ContactsPage() {
   }
 
   const statCards = [
-    { label: 'Total Contacts', value: stats?.total || '0', icon: Users, color: 'text-[#00E599]' },
-    { label: 'Leads', value: stats?.leads || '0', icon: Activity, color: 'text-amber-400' },
-    { label: 'Qualified', value: stats?.qualified || '0', icon: Check, color: 'text-blue-400' },
-    { label: 'New This Week', value: stats?.new_this_week || '0', icon: UserPlus, color: 'text-purple-400' },
+    { label: 'Total Contacts', value: stats?.total || '0', icon: Users, color: 'text-primary' },
+    { label: 'Identified Leads', value: stats?.leads || '0', icon: Activity, color: 'text-amber-700' },
+    { label: 'Qualified Accounts', value: stats?.qualified || '0', icon: Check, color: 'text-emerald-700' },
+    { label: 'New This Week', value: stats?.new_this_week || '0', icon: UserPlus, color: 'text-indigo-700' },
   ]
 
   const totalPages = Math.ceil(total / limit)
 
   const ModalContent = ({ onSubmit, title }: { onSubmit: (e: React.FormEvent) => void; title: string }) => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl p-8 max-w-lg w-full shadow-2xl relative">
-        <button onClick={() => { setShowAddModal(false); setEditContact(null) }} className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors">
-          <X size={20} />
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-surface border border-border rounded-xl p-6 max-w-lg w-full shadow-xl relative">
+        <button onClick={() => { setShowAddModal(false); setEditContact(null) }} className="absolute top-4 right-4 text-muted hover:text-primary transition-colors cursor-pointer">
+          <X size={16} />
         </button>
-        <h2 className="text-lg font-bold text-white mb-6">{title}</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Full Name *</label>
-              <input required className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Smith" />
+        <h2 className="text-base font-bold text-primary mb-4">{title}</h2>
+        <form onSubmit={onSubmit} className="space-y-3.5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 space-y-1">
+              <label className="text-xs font-medium text-secondary">Full Name *</label>
+              <input required className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Smith" />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Email</label>
-              <input type="email" className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@acme.com" />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Email Address</label>
+              <input type="email" className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@company.com" />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Phone</label>
-              <input className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+1 (555) 0123" />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Phone Number</label>
+              <input className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+1 (555) 0123" />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Company</label>
-              <input className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Acme Corp" />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Company</label>
+              <input className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Acme Logistics" />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Title</label>
-              <input className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="CEO" />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Title / Role</label>
+              <input className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Director of Ops" />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Source</label>
-              <select className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))}>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Lead Source</label>
+              <select className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))}>
                 {['manual','website','whatsapp','api','import','chat','other'].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Status</label>
-              <select className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-secondary">Lifecycle Status</label>
+              <select className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none shadow-xs" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
                 {['lead','qualified','customer','churned','archived'].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
             </div>
-            <div className="col-span-2">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Notes</label>
-              <textarea rows={2} className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white focus:border-[#00E599]/50 outline-none transition-all resize-none" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any additional context..." />
+            <div className="col-span-2 space-y-1">
+              <label className="text-xs font-medium text-secondary">Context & Notes</label>
+              <textarea rows={2} className="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-xs text-primary focus:border-border-strong outline-none resize-none shadow-xs" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Additional details or constraints..." />
             </div>
           </div>
-          <button type="submit" className="w-full py-3 bg-[#00E599] text-black font-bold rounded-xl text-sm hover:bg-[#00E599]/90 transition-all">
-            {title.includes('Create') ? 'Create Contact' : 'Save Changes'}
-          </button>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => { setShowAddModal(false); setEditContact(null) }} className="px-3 py-1.5 border border-border bg-surface text-secondary hover:bg-secondary text-xs font-medium rounded-md cursor-pointer shadow-xs">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover font-medium rounded-md text-xs transition-all shadow-xs cursor-pointer">
+              {title.includes('Create') ? 'Create Contact' : 'Save Changes'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   )
 
   return (
-    <div className="flex flex-col h-full bg-[#050507] font-sans text-[#EDEDED] overflow-y-auto custom-scrollbar" onClick={() => setActionMenuId(null)}>
+    <div className="flex flex-col h-full bg-background text-primary overflow-y-auto" onClick={() => setActionMenuId(null)}>
       
       {/* Header bar */}
-      <div className="h-14 border-b border-white/[0.04] bg-[#070709]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
+      <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-6 shrink-0 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-            <Database size={14} className="text-[#00E599]" /> CRM Intelligence
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <Database size={14} className="text-secondary" /> CRM & Entity Registry
           </div>
-          <div className="h-4 w-px bg-white/[0.05]" />
-          <div className="flex items-center gap-3">
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2">
             {(['', 'lead', 'qualified', 'customer'] as const).map(s => (
-              <button key={s} onClick={() => { setStatusFilter(s); setPage(1) }}
-                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${statusFilter === s ? 'text-[#00E599] border-b border-[#00E599]' : 'text-zinc-500 hover:text-white'}`}>
-                {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+              <button 
+                key={s} 
+                onClick={() => { setStatusFilter(s); setPage(1) }}
+                className={`text-xs font-medium px-2 py-1 rounded transition-colors cursor-pointer ${
+                  statusFilter === s 
+                  ? 'bg-action-primary text-action-primary-text shadow-xs' 
+                  : 'text-secondary hover:text-primary'
+                }`}
+              >
+                {s === '' ? 'All Contacts' : s.charAt(0).toUpperCase() + s.slice(1)}
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] rounded-lg text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
-            <Download size={12} /> Export
+          <button 
+            onClick={handleExport} 
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-md text-xs font-medium text-secondary hover:text-primary hover:bg-secondary transition-all shadow-xs cursor-pointer"
+          >
+            <Download size={13} /> Export CSV
           </button>
-          <button onClick={() => { setShowAddModal(true); setEditContact(null); setForm({ name: '', email: '', phone: '', company: '', title: '', source: 'manual', status: 'lead', notes: '' }) }}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#00E599] text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#00E599]/90 transition-all">
-            <UserPlus size={12} /> Add Contact
+          <button 
+            onClick={() => { setShowAddModal(true); setEditContact(null); setForm({ name: '', email: '', phone: '', company: '', title: '', source: 'manual', status: 'lead', notes: '' }) }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover rounded-md text-xs font-medium transition-all shadow-xs cursor-pointer"
+          >
+            <UserPlus size={13} /> Add Contact
           </button>
         </div>
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
+      <div className="flex-1 max-w-6xl mx-auto w-full px-6 py-8 space-y-6">
         
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {statCards.map((s, i) => (
-            <div key={i} className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-5 hover:border-white/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <s.icon size={16} className={s.color} />
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{s.label}</span>
+            <div key={i} className="bg-surface border border-border rounded-lg p-4 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted font-medium">{s.label}</span>
+                <s.icon size={15} className={s.color} />
               </div>
-              <div className="text-2xl font-bold text-white">{loading ? '...' : s.value}</div>
+              <div className="text-2xl font-bold font-mono text-primary mt-2">{loading ? '...' : s.value}</div>
             </div>
           ))}
         </div>
 
         {/* Search */}
-        <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl p-4">
-          <div className="flex items-center gap-3">
+        <div className="bg-surface border border-border rounded-lg p-3 shadow-xs">
+          <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
-                className="w-full pl-10 pr-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-white outline-none focus:border-[#00E599]/50 transition-all"
+                className="w-full pl-9 pr-3 py-1.5 bg-surface border border-border rounded-md text-xs text-primary outline-none focus:border-border-strong transition-all shadow-xs placeholder:text-muted"
                 placeholder="Search contacts by name, email, or company..."
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1) }}
               />
             </div>
-            <button onClick={loadContacts} className="p-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-zinc-500 hover:text-white transition-all">
+            <button 
+              onClick={loadContacts} 
+              className="p-1.5 bg-surface border border-border rounded-md text-secondary hover:text-primary hover:bg-secondary transition-all shadow-xs cursor-pointer"
+              title="Refresh contacts"
+            >
               <RefreshCw size={14} />
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-[#0D0D11] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="bg-surface border border-border rounded-lg shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-white/[0.04]">
+                <tr className="border-b border-border bg-secondary/30">
                   {['Contact', 'Company', 'Contact Info', 'Source', 'Status', 'Interactions', 'Added', ''].map((h, i) => (
-                    <th key={i} className="px-5 py-3 text-left text-[9px] font-black text-zinc-600 uppercase tracking-widest">{h}</th>
+                    <th key={i} className="px-4 py-3 text-left font-semibold text-secondary">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.03]">
+              <tbody className="divide-y divide-border">
                 {loading ? (
-                  <tr><td colSpan={8} className="px-5 py-12 text-center text-zinc-600">
-                    <div className="w-5 h-5 border-2 border-white/10 border-t-[#00E599] rounded-full animate-spin mx-auto" />
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-muted">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto text-secondary mb-1" />
+                    <span>Loading registry...</span>
                   </td></tr>
                 ) : contacts.length === 0 ? (
-                  <tr><td colSpan={8} className="px-5 py-12 text-center text-zinc-500 text-sm">
-                    No contacts found. <button onClick={() => setShowAddModal(true)} className="text-[#00E599] hover:underline ml-1">Add your first contact →</button>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-muted">
+                    No contacts found. <button onClick={() => setShowAddModal(true)} className="text-primary font-medium hover:underline ml-1">Add a new record →</button>
                   </td></tr>
                 ) : contacts.map((c) => {
                   const SrcIcon = SOURCE_ICONS[c.source] || Globe
                   return (
-                    <tr key={c.id} className="hover:bg-white/[0.015] transition-colors group">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-[#00E599]/10 border border-[#00E599]/20 rounded-lg flex items-center justify-center text-[10px] font-black text-[#00E599] shrink-0">
+                    <tr key={c.id} className="hover:bg-secondary/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 bg-secondary border border-border rounded-md flex items-center justify-center text-xs font-bold font-mono text-primary shrink-0">
                             {c.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div>
-                            <div className="text-sm font-bold text-white">{c.name}</div>
-                            {c.title && <div className="text-[10px] text-zinc-500">{c.title}</div>}
+                            <div className="font-semibold text-primary">{c.name}</div>
+                            {c.title && <div className="text-[11px] text-muted">{c.title}</div>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         {c.company ? (
-                          <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                            <Building2 size={11} className="text-zinc-600" /> {c.company}
+                          <div className="flex items-center gap-1.5 text-secondary">
+                            <Building2 size={12} className="text-muted" /> {c.company}
                           </div>
-                        ) : <span className="text-zinc-600 text-xs">—</span>}
+                        ) : <span className="text-muted font-mono">—</span>}
                       </td>
-                      <td className="px-5 py-3.5">
-                        <div className="space-y-1">
-                          {c.email && <div className="flex items-center gap-1.5 text-[10px] text-zinc-400"><Mail size={10} className="text-zinc-600" />{c.email}</div>}
-                          {c.phone && <div className="flex items-center gap-1.5 text-[10px] text-zinc-400"><Phone size={10} className="text-zinc-600" />{c.phone}</div>}
+                      <td className="px-4 py-3">
+                        <div className="space-y-0.5">
+                          {c.email && <div className="flex items-center gap-1 text-secondary"><Mail size={11} className="text-muted" />{c.email}</div>}
+                          {c.phone && <div className="flex items-center gap-1 text-secondary"><Phone size={11} className="text-muted" />{c.phone}</div>}
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                          <SrcIcon size={12} className="text-zinc-600" />
-                          <span className="capitalize">{c.source}</span>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-muted capitalize">
+                          <SrcIcon size={12} className="text-muted" />
+                          <span>{c.source}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border capitalize ${STATUS_COLORS[c.status] || STATUS_COLORS.lead}`}>
-                          <div className="w-1 h-1 rounded-full bg-current" />
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border capitalize ${STATUS_COLORS[c.status] || STATUS_COLORS.lead}`}>
                           {c.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-zinc-500 text-xs">{c.interaction_count || 0}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                          <Clock size={10} className="text-zinc-600" />
-                          {new Date(c.created_at).toLocaleDateString()}
-                        </div>
+                      <td className="px-4 py-3 text-muted font-mono">{c.interaction_count || 0}</td>
+                      <td className="px-4 py-3 text-muted font-mono">
+                        {new Date(c.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-5 py-3.5 relative" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setActionMenuId(actionMenuId === c.id ? null : c.id)}
-                          className="p-1.5 text-zinc-600 hover:text-white transition-colors rounded-lg hover:bg-white/[0.04]">
+                      <td className="px-4 py-3 relative" onClick={e => e.stopPropagation()}>
+                        <button 
+                          onClick={() => setActionMenuId(actionMenuId === c.id ? null : c.id)}
+                          className="p-1 text-muted hover:text-primary transition-colors rounded hover:bg-secondary cursor-pointer"
+                        >
                           <MoreHorizontal size={14} />
                         </button>
                         {actionMenuId === c.id && (
-                          <div className="absolute right-4 top-10 z-10 bg-[#0D0D11] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
-                            <button onClick={() => openEdit(c)} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-zinc-300 hover:text-white hover:bg-white/[0.04] transition-all">
-                              <Edit3 size={12} /> Edit Contact
+                          <div className="absolute right-4 top-8 z-10 bg-surface border border-border rounded-md shadow-lg overflow-hidden min-w-[130px]">
+                            <button 
+                              onClick={() => openEdit(c)} 
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-secondary hover:text-primary hover:bg-secondary transition-all cursor-pointer"
+                            >
+                              <Edit3 size={12} /> Edit Details
                             </button>
-                            <button onClick={() => handleDelete(c.id)} className="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold text-red-400 hover:bg-red-500/10 transition-all">
+                            <button 
+                              onClick={() => handleDelete(c.id)} 
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50 transition-all cursor-pointer"
+                            >
                               <X size={12} /> Archive
                             </button>
                           </div>
@@ -368,18 +394,24 @@ export default function ContactsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="border-t border-white/[0.04] px-5 py-3 flex items-center justify-between">
-              <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                {total} total contacts · Page {page} of {totalPages}
+            <div className="border-t border-border px-4 py-3 flex items-center justify-between bg-surface">
+              <div className="text-xs text-muted font-mono">
+                {total} total records · Page {page} of {totalPages}
               </div>
-              <div className="flex items-center gap-2">
-                <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
-                  className="p-2 bg-white/[0.03] border border-white/[0.06] rounded-lg text-zinc-500 disabled:opacity-30 hover:text-white transition-all">
-                  <ChevronLeft size={14} />
+              <div className="flex items-center gap-1.5">
+                <button 
+                  disabled={page <= 1} 
+                  onClick={() => setPage(p => p - 1)}
+                  className="p-1.5 bg-surface border border-border rounded-md text-secondary disabled:opacity-30 hover:text-primary hover:bg-secondary transition-all cursor-pointer shadow-xs"
+                >
+                  <ChevronLeft size={13} />
                 </button>
-                <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
-                  className="p-2 bg-white/[0.03] border border-white/[0.06] rounded-lg text-zinc-500 disabled:opacity-30 hover:text-white transition-all">
-                  <ChevronRight size={14} />
+                <button 
+                  disabled={page >= totalPages} 
+                  onClick={() => setPage(p => p + 1)}
+                  className="p-1.5 bg-surface border border-border rounded-md text-secondary disabled:opacity-30 hover:text-primary hover:bg-secondary transition-all cursor-pointer shadow-xs"
+                >
+                  <ChevronRight size={13} />
                 </button>
               </div>
             </div>
@@ -387,9 +419,9 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {/* Add Modal */}
-      {showAddModal && <ModalContent onSubmit={handleCreate} title="Create New Contact" />}
-      {editContact && <ModalContent onSubmit={handleUpdate} title="Edit Contact" />}
+      {/* Add / Edit Modals */}
+      {showAddModal && <ModalContent onSubmit={handleCreate} title="Add Contact Record" />}
+      {editContact && <ModalContent onSubmit={handleUpdate} title="Edit Contact Record" />}
     </div>
   )
 }

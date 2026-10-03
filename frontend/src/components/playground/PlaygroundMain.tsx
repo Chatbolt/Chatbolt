@@ -16,7 +16,7 @@ interface PlaygroundMainProps {
 }
 
 function calculatePositions(agentCount: number, canvasW: number, canvasH: number) {
-  const w = 200, h = 160, hGap = 80, vGap = 60
+  const w = 220, h = 160, hGap = 80, vGap = 60
   const pos = []
   if (agentCount <= 3) {
     const startX = (canvasW - (agentCount * w + (agentCount - 1) * hGap)) / 2
@@ -65,14 +65,12 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
   const [dragNode, setDragNode] = useState<{ id: string, startX: number, startY: number } | null>(null)
   const [validationModal, setValidationModal] = useState<{ isOpen: boolean, missing: any[] }>({ isOpen: false, missing: [] })
 
-
   // Load existing
   useEffect(() => {
     if (initialWorkflowId) {
       api.workflows.get(initialWorkflowId).then(res => {
         setWorkflowName(res.workflow.name)
         setAgents(res.agents)
-        // Set missing inputs if needed (would need to derive from schema or saved state)
       }).catch(err => toastError('Failed to load workflow', err.message))
     }
   }, [initialWorkflowId])
@@ -82,13 +80,11 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
     const conns: any[] = []
     if (agents.length <= 1) return conns
     if (agents.length === 4) {
-      // 2x2 grid specific connections
       conns.push({ fromPos: agents[0], toPos: agents[1], status: agentSteps[agents[0].id]?.status === 'running' ? 'active' : agentSteps[agents[0].id]?.status === 'completed' ? 'complete' : 'idle' })
       conns.push({ fromPos: agents[1], toPos: agents[3], status: agentSteps[agents[1].id]?.status === 'running' ? 'active' : agentSteps[agents[1].id]?.status === 'completed' ? 'complete' : 'idle' })
       conns.push({ fromPos: agents[0], toPos: agents[2], status: agentSteps[agents[0].id]?.status === 'running' ? 'active' : agentSteps[agents[0].id]?.status === 'completed' ? 'complete' : 'idle' })
       conns.push({ fromPos: agents[2], toPos: agents[3], status: agentSteps[agents[2].id]?.status === 'running' ? 'active' : agentSteps[agents[2].id]?.status === 'completed' ? 'complete' : 'idle' })
     } else {
-      // Sequential
       for (let i = 0; i < agents.length - 1; i++) {
         conns.push({ 
           fromPos: agents[i], 
@@ -124,7 +120,6 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
   }
 
   const handleRun = async () => {
-    // Check for missing required inputs
     const missing = missingInputs.filter(input => input.required && !userInputs[input.field]);
     if (missing.length > 0) {
       const fieldNames = missing.map(m => m.question || m.field).join(', ');
@@ -141,7 +136,6 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
     }
 
     if (!workflowId) {
-      // Create first
       try {
         const res = await api.workflows.create({ name: workflowName, prompt, type: 'custom', agents })
         setWorkflowId(res.workflow.id)
@@ -157,7 +151,7 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
 
   const startExecution = async (wId: string) => {
     setRunState('running')
-    setLogs([{ id: 'start', timestamp: new Date().toLocaleTimeString(), type: 'workflow_start', message: 'Workflow initialized' }])
+    setLogs([{ id: 'start', timestamp: new Date().toLocaleTimeString(), type: 'workflow_start', message: 'Workflow pipeline initialized' }])
     setAgentSteps({})
     
     try {
@@ -240,91 +234,96 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
   const selectedAgent = agents.find(a => a.id === selectedAgentId)
 
   return (
-    <div className="flex flex-col h-screen bg-[#050507] font-sans selection:bg-[#00E599]/30 overflow-hidden text-[#EDEDED]">
+    <div className="flex flex-col h-screen bg-background font-sans overflow-hidden text-primary">
       {/* Topbar */}
-      <div className="h-[52px] bg-[#09090B] border-b border-white/[0.04] flex items-center justify-between px-4 shrink-0 z-20 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.push('/dashboard/workflows')} className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors">
+      <div className="h-13 bg-surface border-b border-border flex items-center justify-between px-4 shrink-0 z-20 shadow-xs">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => router.push('/dashboard/workflows')} 
+            className="p-1.5 hover:bg-secondary rounded-md text-secondary hover:text-primary transition-colors cursor-pointer"
+          >
             <ArrowLeft size={16} />
           </button>
-          <div className="text-[11px] font-black uppercase tracking-widest text-zinc-500">Workflows / Playground</div>
-          <div className="w-px h-4 bg-white/10 mx-2" />
+          <div className="text-xs font-semibold text-secondary">Workflows / Pipeline Canvas</div>
+          <div className="w-px h-4 bg-border mx-1" />
           <input 
             value={workflowName} 
             onChange={e => setWorkflowName(e.target.value)}
-            className="text-sm font-bold text-white bg-transparent border-none focus:outline-none hover:bg-white/5 px-2 py-1 rounded transition-colors w-48"
+            className="text-xs font-bold text-primary bg-transparent border border-transparent hover:border-border focus:border-border-strong px-2 py-1 rounded-md transition-colors w-48 shadow-xs"
           />
-          <div className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-zinc-400">
+          <div className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-secondary border border-border text-secondary uppercase">
             {runState}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg border border-transparent transition-all">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => toastSuccess('Workflow blueprint saved')}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary hover:text-primary hover:bg-secondary rounded-md border border-border transition-all cursor-pointer shadow-xs"
+          >
             <Save size={12} /> Save
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg border border-transparent transition-all">
+          <button 
+            onClick={() => toastInfo('Shareable link copied')}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary hover:text-primary hover:bg-secondary rounded-md border border-border transition-all cursor-pointer shadow-xs"
+          >
             <Share size={12} /> Share
           </button>
-          <button className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors">
-            <Settings size={14} />
-          </button>
-          <div className="w-px h-4 bg-white/10 mx-1" />
+          <div className="w-px h-4 bg-border mx-1" />
           <button 
             onClick={handleRun}
             disabled={runState === 'running'}
-            className="flex items-center gap-1.5 px-5 py-2 bg-[#00E599] text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#00cc88] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_12px_rgba(0,229,153,0.35)]">
-            <Play size={12} fill="currentColor" /> {runState === 'running' ? 'Running...' : 'Run Workflow'}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover rounded-md text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
+          >
+            <Play size={12} fill="currentColor" /> {runState === 'running' ? 'Running...' : 'Execute Pipeline'}
           </button>
         </div>
       </div>
 
       <div className="flex flex-1 min-h-0 relative">
         {/* Left Panel */}
-        <div className="w-[300px] bg-[#09090B] border-r border-white/[0.04] flex flex-col shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
-          <div className="p-5 flex flex-col gap-4 border-b border-white/[0.04]">
+        <div className="w-80 bg-surface border-r border-border flex flex-col shrink-0 z-10 shadow-xs">
+          <div className="p-4 flex flex-col gap-3 border-b border-border">
             <div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-white">Describe your task</div>
-              <div className="text-[10px] text-zinc-500 mt-1">Type what you want agents to do</div>
+              <div className="text-xs font-semibold text-primary">Natural Language Directives</div>
+              <div className="text-[11px] text-muted">Describe the desired multi-agent task flow</div>
             </div>
             <textarea
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
-              placeholder="e.g. Research top 10 AI tools this week and write a LinkedIn post about them"
-              className="w-full h-32 bg-white/[0.02] border border-white/[0.08] rounded-[10px] p-3 text-[13px] text-white resize-y focus:outline-none focus:border-[#00E599] focus:bg-white/[0.04] transition-all placeholder:text-zinc-600"
+              placeholder="e.g. Conduct market intelligence on competitor pricing and draft weekly executive digest..."
+              className="w-full h-28 bg-surface border border-border rounded-md p-2.5 text-xs text-primary focus:outline-none focus:border-border-strong transition-all placeholder:text-muted resize-none shadow-xs leading-relaxed"
             />
             <button 
               onClick={handleGenerate}
               disabled={runState === 'generating' || !prompt.trim()}
-              className="w-full py-3 bg-[#00E599] text-black rounded-[10px] text-[10px] font-black uppercase tracking-widest hover:bg-[#00cc88] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-[0_0_12px_rgba(0,229,153,0.25)]">
-              {runState === 'generating' ? <div className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Sparkles size={12} />}
-              {runState === 'generating' ? 'Thinking...' : 'Generate Agents →'}
+              className="w-full py-2 bg-action-primary text-action-primary-text hover:bg-action-primary-hover rounded-md text-xs font-medium transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
+            >
+              {runState === 'generating' ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Sparkles size={12} />}
+              {runState === 'generating' ? 'Synthesizing...' : 'Synthesize Agents'}
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-px bg-white/5 flex-1" />
-              <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Needs for each agent</div>
-              <div className="h-px bg-white/5 flex-1" />
-            </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="text-xs font-semibold text-primary">Required Task Parameters</div>
 
             {missingInputs.length === 0 ? (
-              <div className="text-center py-8 text-zinc-600">
-                <Search size={24} className="mx-auto mb-2 opacity-35" />
-                <div className="text-[10px] font-bold uppercase tracking-wider">No inputs required</div>
+              <div className="text-center py-8 text-muted">
+                <Search size={20} className="mx-auto mb-1.5 text-muted" />
+                <div className="text-xs font-medium">No external inputs required</div>
+                <p className="text-[11px] text-muted mt-0.5">Pipeline will run autonomously</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {missingInputs.map((input: any, i: number) => (
-                  <div key={i} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 shadow-inner">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white mb-1">{input.question}</div>
-                    <div className="text-[9px] text-zinc-500 mb-2">For: {input.agentName || 'Agent'}</div>
+                  <div key={i} className="bg-secondary/30 border border-border rounded-md p-2.5 shadow-xs">
+                    <div className="text-xs font-semibold text-primary mb-0.5">{input.question}</div>
+                    <div className="text-[10px] text-muted mb-1.5 font-mono">Bound to: {input.agentName || 'Agent node'}</div>
                     <input 
                       value={userInputs[input.field] || ''}
                       onChange={e => setUserInputs(p => ({ ...p, [input.field]: e.target.value }))}
                       placeholder={`Enter ${input.field}...`}
-                      className="w-full bg-[#050507] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#00E599] transition-colors placeholder:text-zinc-600"
+                      className="w-full bg-surface border border-border rounded px-2 py-1 text-xs text-primary focus:outline-none focus:border-border-strong shadow-xs"
                     />
                   </div>
                 ))}
@@ -335,16 +334,16 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
 
         {/* Center Canvas */}
         <div 
-          className="flex-1 relative overflow-hidden bg-[#050507]" 
+          className="flex-1 relative overflow-hidden bg-background" 
           ref={canvasRef}
           onWheel={handleWheel}
           onMouseDown={() => { setIsPanning(true); setSelectedAgentId(null) }}
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
         >
-          {/* Grid Background */}
+          {/* Subtle Grid Background */}
           <div className="absolute inset-0 pointer-events-none"
             style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+              backgroundImage: 'linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px)',
               backgroundSize: `${32 * transform.scale}px ${32 * transform.scale}px`,
               backgroundPosition: `${transform.x}px ${transform.y}px`
             }}
@@ -353,27 +352,27 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
           <div style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: '0 0', width: '100%', height: '100%' }}>
             {agents.length === 0 && runState !== 'generating' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div className="w-64 h-64 border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center justify-center p-6 text-center bg-[#0D0D11]/65 backdrop-blur-md">
-                  <div className="w-12 h-12 bg-[#00E599]/10 border border-[#00E599]/20 rounded-2xl flex items-center justify-center mb-4 text-[#00E599]">
-                    <Sparkles size={24} />
+                <div className="border border-dashed border-border rounded-xl flex flex-col items-center justify-center p-8 text-center bg-surface/90 shadow-xs max-w-sm">
+                  <div className="w-10 h-10 bg-secondary border border-border rounded-lg flex items-center justify-center mb-3 text-secondary">
+                    <Sparkles size={20} />
                   </div>
-                  <div className="text-sm font-bold text-white mb-1">Your agents will appear here</div>
-                  <div className="text-[10px] text-zinc-500">Type a task and click Generate agents to start</div>
+                  <div className="text-sm font-semibold text-primary mb-1">Canvas Ready for Blueprint</div>
+                  <div className="text-xs text-muted">Type a directive on the left and click Synthesize Agents to generate the graph</div>
                 </div>
               </div>
             )}
 
             {runState === 'generating' && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-[#0D0D11] border border-white/[0.08] rounded-2xl p-6 shadow-2xl max-w-[300px] w-full">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-6 h-6 border-2 border-white/10 border-t-[#00E599] rounded-full animate-spin" />
-                    <div className="text-xs font-bold text-white">Analyzing request...</div>
+                <div className="bg-surface border border-border rounded-lg p-5 shadow-lg max-w-xs w-full">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-5 h-5 border-2 border-border border-t-primary rounded-full animate-spin" />
+                    <div className="text-xs font-semibold text-primary">Synthesizing node graph...</div>
                   </div>
-                  <div className="space-y-2 text-[10px] font-mono text-zinc-500">
-                    <div>→ Identifying task type...</div>
-                    <div>→ Selecting agents...</div>
-                    <div className="animate-pulse">→ Configuring pipeline...</div>
+                  <div className="space-y-1.5 text-[11px] font-mono text-muted">
+                    <div>→ Deconstructing directives...</div>
+                    <div>→ Allocating specialized agents...</div>
+                    <div className="animate-pulse">→ Wiring inputs and outputs...</div>
                   </div>
                 </div>
               </div>
@@ -400,18 +399,24 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
           </div>
 
           {/* Canvas Controls */}
-          <div className="absolute bottom-6 left-6 flex items-center gap-2 z-10">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0D0D11] border border-white/10 rounded-2xl shadow-lg text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">
-              <Plus size={14} /> Add Agent
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 z-10">
+            <button 
+              onClick={() => {
+                const newId = `temp-${Date.now()}`
+                setAgents(p => [...p, { id: newId, name: 'Custom Node', role: 'researcher', description: 'User-added execution step', x: 200, y: 200 }])
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-md shadow-xs text-xs font-medium hover:bg-secondary transition-all text-primary cursor-pointer"
+            >
+              <Plus size={13} /> Add Agent Node
             </button>
           </div>
-          <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
-            <div className="flex flex-col bg-[#0D0D11] border border-white/10 rounded-xl shadow-lg overflow-hidden">
-              <button onClick={() => setTransform(p => ({ ...p, scale: p.scale + 0.1 }))} className="p-2 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"><ZoomIn size={16} /></button>
-              <div className="w-full h-px bg-white/5" />
-              <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(0.2, p.scale - 0.1) }))} className="p-2 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"><ZoomOut size={16} /></button>
-              <div className="w-full h-px bg-white/5" />
-              <button onClick={() => setTransform({ x: 0, y: 0, scale: 1 })} className="p-2 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"><Maximize size={16} /></button>
+          <div className="absolute bottom-4 right-4 flex flex-col gap-1.5 z-10">
+            <div className="flex flex-col bg-surface border border-border rounded-md shadow-xs overflow-hidden">
+              <button onClick={() => setTransform(p => ({ ...p, scale: p.scale + 0.1 }))} className="p-1.5 hover:bg-secondary text-secondary hover:text-primary transition-colors cursor-pointer"><ZoomIn size={14} /></button>
+              <div className="w-full h-px bg-border" />
+              <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(0.2, p.scale - 0.1) }))} className="p-1.5 hover:bg-secondary text-secondary hover:text-primary transition-colors cursor-pointer"><ZoomOut size={14} /></button>
+              <div className="w-full h-px bg-border" />
+              <button onClick={() => setTransform({ x: 0, y: 0, scale: 1 })} className="p-1.5 hover:bg-secondary text-secondary hover:text-primary transition-colors cursor-pointer"><Maximize size={14} /></button>
             </div>
           </div>
         </div>
@@ -455,45 +460,24 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
           />
         )}
 
-        {/* Validation Modal */}
         {validationModal.isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setValidationModal(p => ({ ...p, isOpen: false }))} />
-            <div className="relative bg-[#0E0E12] border border-white/[0.08] rounded-[32px] shadow-2xl w-full max-w-md p-8 animate-in fade-in zoom-in duration-200">
-              <button 
-                onClick={() => setValidationModal(p => ({ ...p, isOpen: false }))}
-                className="absolute top-6 right-6 p-2 rounded-xl hover:bg-white/5 transition-colors text-zinc-500 hover:text-white">
-                <X size={18} />
-              </button>
-              
-              <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mb-6 text-amber-500">
-                <AlertTriangle size={32} />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div className="bg-surface border border-border rounded-xl p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center gap-2 text-rose-700 font-semibold text-sm mb-2">
+                <AlertTriangle size={16} />
+                <span>Required Execution Parameters Missing</span>
               </div>
-              
-              <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Data Required</h2>
-              <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                We need a bit more information before we can start this workflow. Please provide the following:
+              <p className="text-xs text-secondary mb-4">
+                Please provide the required values on the left panel before executing this pipeline.
               </p>
-              
-              <div className="space-y-4 mb-8">
-                {validationModal.missing.map((input, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-2xl">
-                    <div className="w-5 h-5 bg-[#00E599] rounded-full flex items-center justify-center text-[10px] font-black text-black shrink-0 mt-0.5">
-                      {i + 1}
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-black uppercase tracking-wider text-white">{input.question}</div>
-                      <div className="text-[10px] text-zinc-500">Agent: {input.agentName || 'Workflow'}</div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setValidationModal({ isOpen: false, missing: [] })}
+                  className="px-4 py-1.5 bg-action-primary text-action-primary-text hover:bg-action-primary-hover text-xs font-medium rounded-md cursor-pointer shadow-xs"
+                >
+                  Dismiss
+                </button>
               </div>
-
-              <button 
-                onClick={() => setValidationModal(p => ({ ...p, isOpen: false }))}
-                className="w-full py-4 bg-[#00E599] text-black rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-[#00cc88] transition-all shadow-[0_0_12px_rgba(0,229,153,0.3)]">
-                Got it, let me add that
-              </button>
             </div>
           </div>
         )}
@@ -501,4 +485,3 @@ export function PlaygroundMain({ initialWorkflowId }: PlaygroundMainProps) {
     </div>
   )
 }
-

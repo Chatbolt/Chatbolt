@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!--
+    Chatbolt Logo Mark — Reversed (Light on Dark)
+    Same geometry, inverted fill for dark backgrounds.
+    Used on dark navbars, dark-mode dashboards, GitHub dark mode.
+  -->
+  <rect x="6" y="18" width="10" height="20" fill="#F8FAFC"/>
+  <rect x="19" y="10" width="10" height="28" fill="#F8FAFC"/>
+  <rect x="32" y="18" width="10" height="20" fill="#F8FAFC"/>
+  <rect x="6" y="40" width="36" height="2" fill="#F8FAFC"/>
+</svg>
